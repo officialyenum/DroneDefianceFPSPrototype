@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "BH_CharacterBase.h"
+#include "Camera/CameraComponent.h"
+#include "Interaction/CombatInterface.h"
 #include "BH_CharacterPlayer.generated.h"
 
 UCLASS()
-class BROTHERHOODFPS_API ABH_CharacterPlayer : public ABH_CharacterBase
+class BROTHERHOODFPS_API ABH_CharacterPlayer : public ABH_CharacterBase, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -17,14 +19,14 @@ public:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	UFUNCTION()
 	virtual void ApplyDamageToEnemy(AActor* Actor) override;
-	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-	
-public:
+	UFUNCTION()
+	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	                        AController* InstigatedBy, AActor* DamageCauser) override;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
+	TObjectPtr<UCameraComponent> Camera;
 };

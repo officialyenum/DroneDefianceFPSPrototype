@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Animation/BH_AnimInstanceBase.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
 #include "BH_CharacterBase.generated.h"
@@ -15,10 +16,14 @@ class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ABH_CharacterBase();
-	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void ApplyDamageToEnemy(AActor* Actor);
+	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+							AController* InstigatedBy, AActor* DamageCauser);
 
 public:
 	// Called every frame
@@ -34,13 +39,14 @@ public:
 	void PlaySoundAndBurstEmitterFX();
 
 	UFUNCTION(BlueprintCallable)
+	void ResetCanShoot();
+	
+	UFUNCTION(BlueprintCallable)
 	void FireWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void PerformLineTrace();
 
-	virtual void ApplyDamageToEnemy(AActor* Actor);
-	
 	UFUNCTION(BlueprintCallable)
 	void AddAmmo(int32 NewAmmo);
 
@@ -75,8 +81,6 @@ public:
 	float ShootRate;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	float BulletDamage;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	FDamageEvent DamageType;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	bool CanShoot;

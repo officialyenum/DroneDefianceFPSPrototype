@@ -5,6 +5,7 @@
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Character/BH_CharacterPlayer.h"
 #include "GameFramework/Character.h"
 
 ABH_PlayerController::ABH_PlayerController()
@@ -44,6 +45,8 @@ void ABH_PlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ABH_PlayerController::AimOff);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ABH_PlayerController::Jump);
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ABH_PlayerController::Shoot);
+	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &ABH_PlayerController::FiringOn);
+	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ABH_PlayerController::FiringOff);
 }
 
 void ABH_PlayerController::MoveForward(const FInputActionValue& InputActionValue)
@@ -86,14 +89,42 @@ void ABH_PlayerController::Turn(const FInputActionValue& InputActionValue)
 
 void ABH_PlayerController::Shoot(const FInputActionValue& InputActionValue)
 {
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->FireWeapon();
+	}
 }
 
 void ABH_PlayerController::AimOn(const FInputActionValue& InputActionValue)
 {
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->AnimBP->IsAiming = true;
+	}
 }
 
 void ABH_PlayerController::AimOff(const FInputActionValue& InputActionValue)
 {
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->AnimBP->IsAiming = false;
+	}
+}
+
+void ABH_PlayerController::FiringOn(const FInputActionValue& InputActionValue)
+{
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->FireButtonPressed = true;
+	}
+}
+
+void ABH_PlayerController::FiringOff(const FInputActionValue& InputActionValue)
+{
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->FireButtonPressed = false;
+	}
 }
 
 void ABH_PlayerController::Jump(const FInputActionValue& InputActionValue)

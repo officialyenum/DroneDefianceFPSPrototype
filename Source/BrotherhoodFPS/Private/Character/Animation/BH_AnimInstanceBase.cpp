@@ -13,7 +13,7 @@ void UBH_AnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	FVector Velocity = TryGetPawnOwner()->GetVelocity();
-	float VectorLength = Velocity.Size();
-	IsMoving = VectorLength > 0 ? true : false;
+	// FVector Velocity = TryGetPawnOwner()->GetVelocity();
+	// float VectorLength = Velocity.Size();
+	// IsMoving = VectorLength > 0 ? true : false;
 }

@@ -5,6 +5,7 @@
 
 #include "Character/BH_CharacterPlayer.h"
 #include "Engine/DamageEvents.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -18,6 +19,7 @@ ABH_Enemy::ABH_Enemy()
 void ABH_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
+	OnTakeAnyDamage.AddDynamic(this,&ABH_Enemy::TakeHitDamage);
 	
 }
 
@@ -26,16 +28,17 @@ void ABH_Enemy::ApplyDamageToEnemy(AActor* Actor)
 	Super::ApplyDamageToEnemy(Actor);
 	if (ABH_CharacterPlayer* Enemy = Cast<ABH_CharacterPlayer>(Actor))
 	{
-		Enemy->TakeDamage(BulletDamage, DamageType, GetController(), this);
+		TSubclassOf<UDamageType> DamageType;
+		UGameplayStatics::ApplyDamage(Enemy,BulletDamage,GetController(),this,DamageType);
 	}
 }
 
-float ABH_Enemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
-                            AActor* DamageCauser)
+void ABH_Enemy::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy,
+	AActor* DamageCauser)
 {
-	float NewHealth = Health - DamageAmount;
+	
+	float NewHealth = Health - Damage;
 	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
-	return DamageAmount;
 }
 
 // Called every frame

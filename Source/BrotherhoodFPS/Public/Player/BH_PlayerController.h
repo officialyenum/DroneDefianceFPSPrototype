@@ -58,5 +58,9 @@ private:
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void AimOff(const struct FInputActionValue& InputActionValue);
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
+	void FiringOn(const struct FInputActionValue& InputActionValue);
+	UFUNCTION(BlueprintCallable, Category="Player Actions")
+	void FiringOff(const struct FInputActionValue& InputActionValue);
+	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void Jump(const struct FInputActionValue& InputActionValue);
 };
