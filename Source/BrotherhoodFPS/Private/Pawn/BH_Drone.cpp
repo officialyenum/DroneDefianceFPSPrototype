@@ -4,12 +4,14 @@
 #include "Pawn/BH_Drone.h"
 
 #include "AIController.h"
+#include "AI/Controller/BH_DroneAiController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Character/BH_CharacterPlayer.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Perception/AISense_Sight.h"
 
 
 // Sets default values
@@ -18,17 +20,33 @@ ABH_Drone::ABH_Drone()
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>("DefaultSceneRoot");
-	DefaultSceneRoot->SetupAttachment(RootComponent);
+	RootComponent = CreateDefaultSubobject<USceneComponent>("DefaultSceneRoot");
+	
 	DroneMesh = CreateDefaultSubobject<USkeletalMeshComponent>("DroneMesh");
-	DroneMesh->SetupAttachment(DefaultSceneRoot);
-	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
-	Sphere->SetupAttachment(DefaultSceneRoot);
-	Sphere->SetGenerateOverlapEvents(true);
+	DroneMesh->SetupAttachment(RootComponent);
+	
+	
 	ExplosionSphere = CreateDefaultSubobject<USphereComponent>("ExplosionSphere");
-	ExplosionSphere->SetupAttachment(DefaultSceneRoot);
+	ExplosionSphere->SetupAttachment(RootComponent);
 	ExplosionSphere->SetGenerateOverlapEvents(true);
+	
 	FloatingPawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>("FloatingPawnMovement");
+
+	SetupStimulusSource();
+	
+	// Default Values
+	Health = 50.0f;
+	MaxHealth = 50.0f;
+	CurrentState = EDroneState::Patrol;
+	RageColor = FLinearColor::Red;
+	CoolColor = FLinearColor::Blue;
+	BulletDamage = 20.0f;
+	
+}
+
+UBehaviorTree* ABH_Drone::GetBehaviorTree() const
+{
+	return Tree;
 }
 
 // Called when the game starts or when spawned
@@ -36,21 +54,15 @@ void ABH_Drone::BeginPlay()
 {
 	Super::BeginPlay();
 	ExplosionSphere->OnComponentBeginOverlap.AddDynamic(this,&ABH_Drone::ExplosionSphereBeginOverlap);
-	Sphere->OnComponentBeginOverlap.AddDynamic(this,&ABH_Drone::SphereBeginOverlap);
 	OnTakeAnyDamage.AddDynamic(this,&ABH_Drone::TakeHitDamage);
 	
-}
+	DynamicDroneMaterial = DroneMesh->CreateAndSetMaterialInstanceDynamic(0);
 
-void ABH_Drone::SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	
-	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("Sphere Overlapped")));
-	if (ABH_CharacterPlayer* Player = Cast<ABH_CharacterPlayer>(OtherActor))
-	{
-		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Green,FString::Printf(TEXT("Player Overlapped Sphere")));
-		MoveToGoalTarget(Player);
-	}
+	ChangeDroneColor(CoolColor);
+	SetDroneState(EDroneState::Patrol);
+	FTimerHandle TimerHandle;
+	// Bind the InitPatrolPoint function to be called after 2 seconds
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_Drone::InitPatrolPoint, 2.0f, false);
 }
 
 void ABH_Drone::ExplosionSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -85,7 +97,34 @@ void ABH_Drone::TakeHitDamage(AActor* DamagedActor, float Damage,const UDamageTy
 	{
 		Explode();
 	}
-	ChangeDroneColor(true);
+	ChangeDroneColor(RageColor);
+	if(ABH_DroneAiController* DC = Cast<ABH_DroneAiController>(GetController()))
+	{
+		DC->OnDroneHit(DamageCauser);
+	}
+}
+void ABH_Drone::InitPatrolPoint()
+
+{
+	TArray<AActor*> PatrolPoints;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABH_PatrolPoint::StaticClass(), PatrolPoints);
+
+	if (PatrolPoints.Num() > 0)
+	{
+		int32 RandomIndex = FMath::RandRange(0, PatrolPoints.Num() - 1);
+		NextPatrolPoint = Cast<ABH_PatrolPoint>(PatrolPoints[RandomIndex]);
+		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("NextPatrolPoint Initialized")));
+		return;
+	}
+	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("NextPatrolPoint Not Initialized")));
+}
+
+
+
+ABH_PatrolPoint* ABH_Drone::GoToNextPatrolPoint()
+{
+	NextPatrolPoint = Cast<ABH_PatrolPoint>(NextPatrolPoint->NextLocation);
+	return NextPatrolPoint;
 }
 
 void ABH_Drone::Explode()
@@ -96,45 +135,70 @@ void ABH_Drone::Explode()
 	UGameplayStatics::PlaySoundAtLocation(this,ExplosionSound,Loc,Rot);
 
 	//TODO: Update Game mode that drone died
-
 	Destroy();
 }
 
-void ABH_Drone::ChangeDroneColor(bool bIsInRageMode)
+void ABH_Drone::ChangeDroneColor(FLinearColor NewColor)
 {
-	check(DynamicDroneMaterial);
-	if (!bIsInRageMode)
+	if (DynamicDroneMaterial)
 	{
-		//DynamicDroneMaterial->SetVectorParameterValue(FName("TeamColor"), CoolColor);
-	}
-	else
-	{
-		//DynamicDroneMaterial->SetVectorParameterValue(FName("TeamColor"), RageColor);
+		DynamicDroneMaterial->SetVectorParameterValue("TeamColor", NewColor);
 	}
 }
 
-void ABH_Drone::MoveToGoalTarget(AActor* NewGoalTarget)
+void ABH_Drone::ResetToPatrol()
 {
-	GoalActor = NewGoalTarget;
-	// Get the AI controller for this character
-	AAIController* AIController = Cast<AAIController>(GetController());
-	if (AIController)
-	{
-		// Move to the goal actor
-		UAIBlueprintHelperLibrary::SimpleMoveToActor(AIController, GoalActor);
-	}
+	SetDroneState(EDroneState::Patrol);
 }
 
 // Called every frame
 void ABH_Drone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (GetDroneState() == EDroneState::Patrol)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Patroling")));
+	
+	}else
+	{
+		GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Green,FString::Printf(TEXT("Rage")));
+	
+	}
 	if (IsValid(GoalActor))
 	{
 		FRotator CurrentRot = GetActorRotation();
 		FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GoalActor->GetActorLocation());
 		SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,5.0f));
 	}
+}
+
+void ABH_Drone::SetupStimulusSource()
+{
+	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+	if (StimulusSource)
+	{
+		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		StimulusSource->RegisterWithPerceptionSystem();
+	}
+}
+
+void ABH_Drone::SetDroneState(EDroneState NewState)
+{
+	CurrentState = NewState;
+	if (CurrentState == EDroneState::Rage)
+	{
+		ChangeDroneColor(RageColor);
+		// Additional Rage behaviors
+	}
+	else
+	{
+		ChangeDroneColor(CoolColor);
+		// Additional Patrol behaviors
+	}
+}
+
+void ABH_Drone::SetGoalActor(AActor* NewGoal)
+{
+	GoalActor = NewGoal;
 }
 
