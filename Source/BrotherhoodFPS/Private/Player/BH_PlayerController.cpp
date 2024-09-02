@@ -47,6 +47,8 @@ void ABH_PlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ABH_PlayerController::Shoot);
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &ABH_PlayerController::FiringOn);
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ABH_PlayerController::FiringOff);
+	EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ABH_PlayerController::EquipWeapon);
+	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABH_PlayerController::Reload);
 }
 
 void ABH_PlayerController::MoveForward(const FInputActionValue& InputActionValue)
@@ -92,6 +94,7 @@ void ABH_PlayerController::Shoot(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->FireWeapon();
+		ControlledPawn->UpdateGunUI();
 	}
 }
 
@@ -132,5 +135,27 @@ void ABH_PlayerController::Jump(const FInputActionValue& InputActionValue)
 	if (ACharacter* ControlledPawn = GetPawn<ACharacter>())
 	{
 		ControlledPawn->Jump();
+	}
+}
+
+void ABH_PlayerController::EquipWeapon(const FInputActionValue& InputActionValue)
+{
+	
+	const float InputAxis = InputActionValue.Get<float>();
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Equipping New Weapon")));
+		ControlledPawn->EquippedGunIndex += InputAxis;
+		ControlledPawn->EquipWeapon();
+	}
+}
+
+void ABH_PlayerController::Reload(const FInputActionValue& InputActionValue)
+{
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Reloading Weapon")));
+		ControlledPawn->ReloadWeapon();
+		ControlledPawn->UpdateGunUI();
 	}
 }

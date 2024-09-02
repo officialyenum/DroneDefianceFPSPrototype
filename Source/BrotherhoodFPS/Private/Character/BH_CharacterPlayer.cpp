@@ -29,6 +29,8 @@ void ABH_CharacterPlayer::BeginPlay()
 	
 	OnTakeAnyDamage.AddDynamic(this,&ABH_CharacterPlayer::TakeHitDamage);
 	SetUpAnimBp();
+	UpdateHealthUI();
+	UpdateGunUI();
 }
 
 void ABH_CharacterPlayer::ApplyDamageToEnemy(AActor* Actor)
@@ -53,6 +55,7 @@ void ABH_CharacterPlayer::TakeHitDamage(AActor* DamagedActor, float Damage, cons
 		
 	float NewHealth = Health - Damage;
 	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
+	UpdateHealthUI();
 }
 
 // Called every frame

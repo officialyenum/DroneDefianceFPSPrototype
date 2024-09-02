@@ -17,6 +17,12 @@ public:
 	// Sets default values for this character's properties
 	ABH_CharacterPlayer();
 
+	UFUNCTION(BlueprintCallable, Category="Gun Param")
+	int32 GetGunAmmo(){ return EquippedGun->Ammo; }
+	
+	UFUNCTION(BlueprintCallable, Category="Gun Param")
+	int32 GetGunCartridge(){ return EquippedGun->Cartridge; }
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
@@ -27,6 +33,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateHealthUI();
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateGunUI();
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="UI")
+	TObjectPtr<UUserWidget> HUD;
+	
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
 	TObjectPtr<UCameraComponent> Camera;
 };
