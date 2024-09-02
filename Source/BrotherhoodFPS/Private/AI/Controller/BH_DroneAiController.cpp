@@ -83,11 +83,9 @@ void ABH_DroneAiController::OnTargetDetected(AActor* Actor, FAIStimulus const St
 			Cast<ABH_Drone>(GetPawn())->SetGoalActor(Actor);
 			Cast<ABH_Drone>(GetPawn())->SetDroneState(EDroneState::Rage);
 			GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Green,FString::Printf(TEXT("Player Seen")));
-		
 		}
 		else
 		{
-			Cast<ABH_Drone>(GetPawn())->SetGoalActor(nullptr);
 			Cast<ABH_Drone>(GetPawn())->SetDroneState(EDroneState::Patrol);
 			GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("Player Lost")));
 		}
@@ -98,4 +96,5 @@ void ABH_DroneAiController::OnTargetDetected(AActor* Actor, FAIStimulus const St
 void ABH_DroneAiController::OnDroneHit(AActor* Actor)
 {
 	GetBlackboardComponent()->SetValueAsObject("GoalPointTarget", Actor);
+	GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", true);
 }

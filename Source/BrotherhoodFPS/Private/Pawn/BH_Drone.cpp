@@ -3,9 +3,7 @@
 
 #include "Pawn/BH_Drone.h"
 
-#include "AIController.h"
 #include "AI/Controller/BH_DroneAiController.h"
-#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Character/BH_CharacterPlayer.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
@@ -24,7 +22,6 @@ ABH_Drone::ABH_Drone()
 	
 	DroneMesh = CreateDefaultSubobject<USkeletalMeshComponent>("DroneMesh");
 	DroneMesh->SetupAttachment(RootComponent);
-	
 	
 	ExplosionSphere = CreateDefaultSubobject<USphereComponent>("ExplosionSphere");
 	ExplosionSphere->SetupAttachment(RootComponent);
@@ -155,21 +152,32 @@ void ABH_Drone::ResetToPatrol()
 void ABH_Drone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	FRotator CurrentRot = GetActorRotation();
 	if (GetDroneState() == EDroneState::Patrol)
 	{
-		GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Patroling")));
-	
+		if (IsValid(GoalActor))
+		{
+			GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Patroling")));
+		
+			FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GoalActor->GetActorLocation());
+			SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,1.0f));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Chasing Attacker")));
+		
+			FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GetPatrolPoint()->GetActorLocation());
+			SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,1.0f));
+		}
 	}else
 	{
 		GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Green,FString::Printf(TEXT("Rage")));
-	
-	}
-	if (IsValid(GoalActor))
-	{
-		FRotator CurrentRot = GetActorRotation();
 		FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GoalActor->GetActorLocation());
 		SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,5.0f));
+		
 	}
+	
 }
 
 void ABH_Drone::SetupStimulusSource()

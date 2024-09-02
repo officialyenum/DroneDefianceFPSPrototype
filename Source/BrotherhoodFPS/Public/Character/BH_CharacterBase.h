@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Actor/BH_Gun.h"
+#include "Actor/BH_Pickup.h"
 #include "Animation/BH_AnimInstanceBase.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
@@ -24,7 +26,6 @@ protected:
 	virtual void ApplyDamageToEnemy(AActor* Actor);
 	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 							AController* InstigatedBy, AActor* DamageCauser);
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -36,27 +37,34 @@ public:
 	void PlayFireMontage();
 
 	UFUNCTION(BlueprintCallable)
-	void PlaySoundAndBurstEmitterFX();
-
-	UFUNCTION(BlueprintCallable)
 	void ResetCanShoot();
 	
 	UFUNCTION(BlueprintCallable)
 	void FireWeapon();
 
 	UFUNCTION(BlueprintCallable)
+	void EquipWeapon();
+	
+	UFUNCTION(BlueprintCallable)
 	void PerformLineTrace();
 
 	UFUNCTION(BlueprintCallable)
-	void AddAmmo(int32 NewAmmo);
+	void ReloadWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void AddHealth(float NewHealth);
+	UFUNCTION(BlueprintCallable)
+	void AddCartridge(EPickupType CartridgeType,float CartridgeAmount);
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
 	TObjectPtr<USceneComponent> BurstPoint;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<USkeletalMeshComponent> Gun;
+	TObjectPtr<ABH_Gun> EquippedGun;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
+	TObjectPtr<UChildActorComponent> PrimaryGun;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
+	TObjectPtr<UChildActorComponent> SecondaryGun;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player FX")
 	TObjectPtr<UParticleSystem> ShotBurstFX;
@@ -88,4 +96,10 @@ public:
 	bool FireButtonPressed;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 Ammo;
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	TArray<UChildActorComponent*> GunInventory;
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 EquippedGunIndex;
 };

@@ -42,6 +42,10 @@ private:
 	TObjectPtr<UInputAction> AimAction;
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> JumpAction;
+	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> ReloadAction;
+	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> EquipAction;
 
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void MoveForward(const struct FInputActionValue& InputActionValue);
@@ -63,4 +67,8 @@ private:
 	void FiringOff(const struct FInputActionValue& InputActionValue);
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void Jump(const struct FInputActionValue& InputActionValue);
+	UFUNCTION(BlueprintCallable, Category="Player Actions")
+	void EquipWeapon(const struct FInputActionValue& InputActionValue);
+	UFUNCTION(BlueprintCallable, Category="Player Actions")
+	void Reload(const struct FInputActionValue& InputActionValue);
 };

@@ -19,22 +19,24 @@ ABH_CharacterBase::ABH_CharacterBase()
 	GetCapsuleComponent()->SetGenerateOverlapEvents(true);
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(false);
-
-	Gun = CreateDefaultSubobject<USkeletalMeshComponent>("Gun");
-	Gun->SetupAttachment(GetCapsuleComponent());
-	Gun->SetGenerateOverlapEvents(false);
-	Gun->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	PrimaryGun = CreateDefaultSubobject<UChildActorComponent>("PrimaryGun");
+	PrimaryGun->SetupAttachment(GetMesh());
+	SecondaryGun = CreateDefaultSubobject<UChildActorComponent>("SecondaryGun");
+	SecondaryGun->SetupAttachment(GetMesh());
 	//FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
 	//Gun->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
-	
-	BurstPoint = CreateDefaultSubobject<USceneComponent>("BurstPoint");
-	BurstPoint->SetupAttachment(Gun);
 }
 
 // Called when the game starts or when spawned
 void ABH_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GunInventory.Add(PrimaryGun);
+	GunInventory.Add(SecondaryGun);
+	EquippedGunIndex = 0;
+	EquipWeapon();
 }
 
 // Called every frame
@@ -53,37 +55,45 @@ void ABH_CharacterBase::PlayFireMontage()
 	AnimBP->IsAiming ? AnimBP->Montage_Play(AimFireMontage): AnimBP->Montage_Play(AimMontage);
 }
 
-void ABH_CharacterBase::PlaySoundAndBurstEmitterFX()
-{
-	FVector Loc = BurstPoint->GetComponentLocation();
-	FRotator Rot = BurstPoint->GetComponentRotation();
-	FVector Scale = FVector(0.25);
-	UGameplayStatics::SpawnEmitterAtLocation(this, ShotBurstFX, Loc, Rot, Scale, true);
-	UGameplayStatics::PlaySoundAtLocation(this, ShotSound, Loc, Rot, 0.5f);
-}
-
 void ABH_CharacterBase::ResetCanShoot()
 {
-	CanShoot = true;
+	EquippedGun->CanShoot = true;
 }
 
 void ABH_CharacterBase::FireWeapon()
 {
-	if (!CanShoot || Ammo <= 0)
+	if (!EquippedGun->CanShoot || EquippedGun->Ammo <= 0)
 	{
 		return;
 	}
-	CanShoot = false;
-	PlaySoundAndBurstEmitterFX();
+	EquippedGun->CanShoot = false;
+	EquippedGun->PlaySoundAndBurstEmitterFX();
 	PlayFireMontage();
 	PerformLineTrace();
-	Ammo--;
+	EquippedGun->Ammo--;
 	// delay for 2 seconds
 	// Create a timer handle
 	FTimerHandle TimerHandle;
 
 	// Bind the ResetCanShoot function to be called after 2 seconds
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_CharacterBase::ResetCanShoot, ShootRate, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_CharacterBase::ResetCanShoot, EquippedGun->ShootRate, false);
+}
+
+void ABH_CharacterBase::EquipWeapon()
+{
+	EquippedGunIndex = FMath::Clamp(EquippedGunIndex, 0, GunInventory.Num());
+	if (EquippedGunIndex > GunInventory.Num() - 1)
+	{
+		EquippedGunIndex = 0;
+	}
+	for (auto Element : GunInventory	)
+	{
+		Element->SetVisibility(false);
+	}
+	FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
+	GunInventory[EquippedGunIndex]->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
+	GunInventory[EquippedGunIndex]->SetVisibility(true);
+	EquippedGun = Cast<ABH_Gun>(GunInventory[EquippedGunIndex]->GetChildActor());
 }
 
 void ABH_CharacterBase::PerformLineTrace()
@@ -102,6 +112,12 @@ void ABH_CharacterBase::PerformLineTrace()
 	}
 }
 
+void ABH_CharacterBase::ReloadWeapon()
+{
+	EquippedGun->Reload();
+	AnimBP->Montage_Play(EquippedGun->ReloadMontage);
+}
+
 void ABH_CharacterBase::ApplyDamageToEnemy(AActor* Actor)
 {
 }
@@ -111,13 +127,23 @@ void ABH_CharacterBase::TakeHitDamage(AActor* DamagedActor, float Damage, const 
 {
 }
 
-void ABH_CharacterBase::AddAmmo(int32 NewAmmo)
-{
-	Ammo += NewAmmo;
-}
-
 void ABH_CharacterBase::AddHealth(float NewHealth)
 {
 	Health += FMath::Clamp(NewHealth, 0, MaxHealth);
+}
+
+void ABH_CharacterBase::AddCartridge(EPickupType CartridgeType, float CartridgeAmount)
+{
+	for (auto Element : GunInventory)
+	{
+		if (ABH_Gun* CurrentGun = Cast<ABH_Gun>(Element->GetChildActor()))
+		{
+			if(CurrentGun->CartridgeType == CartridgeType)
+			{
+				CurrentGun->AddCartridge(CartridgeAmount);
+			}
+		}
+		
+	}
 }
 
