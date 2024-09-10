@@ -158,26 +158,24 @@ void ABH_Drone::Tick(float DeltaTime)
 	{
 		if (IsValid(GoalActor))
 		{
-			GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Patroling")));
+			//GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Patroling")));
 		
 			FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GoalActor->GetActorLocation());
 			SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,1.0f));
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Chasing Attacker")));
+			//GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Blue,FString::Printf(TEXT("Chasing Attacker")));
 		
 			FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GetPatrolPoint()->GetActorLocation());
 			SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,1.0f));
 		}
 	}else
 	{
-		GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Green,FString::Printf(TEXT("Rage")));
+		// GEngine->AddOnScreenDebugMessage(-1,1.0f,FColor::Green,FString::Printf(TEXT("Rage")));
 		FRotator NextRot = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GoalActor->GetActorLocation());
 		SetActorRotation(UKismetMathLibrary::RInterpTo(CurrentRot, NextRot, DeltaTime,5.0f));
-		
 	}
-	
 }
 
 void ABH_Drone::SetupStimulusSource()

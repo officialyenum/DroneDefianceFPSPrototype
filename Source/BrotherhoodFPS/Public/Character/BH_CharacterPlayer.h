@@ -18,13 +18,17 @@ public:
 	ABH_CharacterPlayer();
 
 	UFUNCTION(BlueprintCallable, Category="Gun Param")
-	int32 GetGunAmmo(){ return EquippedGun->Ammo; }
+	int32 GetGunAmmo(){ return Ammo; }
 	
 	UFUNCTION(BlueprintCallable, Category="Gun Param")
-	int32 GetGunCartridge(){ return EquippedGun->Cartridge; }
+	int32 GetGunCartridge(){ return Cartridge; }
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Player Params")
+	FVector RespawnLocation;
 
-
+	void Die();
+	void Respawn();
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
@@ -36,9 +40,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateHealthUI();
-	UFUNCTION(BlueprintImplementableEvent)
-	void UpdateGunUI();
+	void TriggerOutOfAmmoMessageInUI();
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="UI")
 	TObjectPtr<UUserWidget> HUD;
