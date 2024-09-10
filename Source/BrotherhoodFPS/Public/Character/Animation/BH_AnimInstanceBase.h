@@ -24,6 +24,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
 	bool IsHoldingPistol;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
+	bool IsSprinting;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
 	float Speed;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

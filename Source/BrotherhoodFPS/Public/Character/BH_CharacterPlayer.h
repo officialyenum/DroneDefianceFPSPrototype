@@ -23,6 +23,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Gun Param")
 	int32 GetGunCartridge(){ return EquippedGun->Cartridge; }
 	
+
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()

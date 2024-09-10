@@ -7,6 +7,10 @@
 
 UBH_AnimInstanceBase::UBH_AnimInstanceBase()
 {
+	IsAiming=false;
+	IsMoving=false;
+	IsSprinting=false;
+	Speed=0.f;
 }
 
 void UBH_AnimInstanceBase::NativeUpdateAnimation(float DeltaSeconds)
