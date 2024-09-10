@@ -4,11 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Actor/BH_Gun.h"
-#include "Actor/BH_Pickup.h"
 #include "Animation/BH_AnimInstanceBase.h"
-#include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
 #include "BH_CharacterBase.generated.h"
+
+UENUM(BlueprintType)
+enum class ECharacterType : uint8
+{
+	Player UMETA(DisplayName = "Player"),
+	Enemy UMETA(DisplayName = "Enemy"),
+	NPC UMETA(DisplayName = "NPC"),
+};
 
 UCLASS(Abstract)
 class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
@@ -18,7 +24,7 @@ class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ABH_CharacterBase();
-	
+
 	
 protected:
 	// Called when the game starts or when spawned
@@ -40,37 +46,35 @@ public:
 	void ResetCanShoot();
 	
 	UFUNCTION(BlueprintCallable)
-	void FireWeapon();
+	void PlaySoundAndBurstEmitterFX();
 
 	UFUNCTION(BlueprintCallable)
-	void EquipWeapon();
+	void FireWeapon();
 	
 	UFUNCTION(BlueprintCallable)
 	void PerformLineTrace();
 
 	UFUNCTION(BlueprintCallable)
 	void ReloadWeapon();
+	
+	UFUNCTION(BlueprintCallable)
+	void SetUpWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void AddHealth(float NewHealth);
 	UFUNCTION(BlueprintCallable)
-	void AddCartridge(EPickupType CartridgeType,float CartridgeAmount);
+	void AddCartridge(float CartridgeAmount);
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
 	TObjectPtr<USceneComponent> BurstPoint;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<ABH_Gun> EquippedGun;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<UChildActorComponent> PrimaryGun;
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<UChildActorComponent> SecondaryGun;
+	TObjectPtr<USkeletalMeshComponent> GunComponent;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player FX")
 	TObjectPtr<UParticleSystem> ShotBurstFX;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player FX")
 	TObjectPtr<UParticleSystem> ImpactFX;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player SoundS")
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Sound")
 	TObjectPtr<USoundBase> ShotSound;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
@@ -80,6 +84,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
 	TObjectPtr<UAnimMontage> AimMontage;
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Player Params")
+	ECharacterType CharacterType;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
 	float Health;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
@@ -89,17 +95,33 @@ public:
 	float ShootRate;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	float BulletDamage;
-	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	bool CanShoot;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	bool FireButtonPressed;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 Ammo;
-	
+
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	TArray<UChildActorComponent*> GunInventory;
-	
+	FName GunName;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 EquippedGunIndex;
+	float ReloadTime;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 MaxAmmo;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 Cartridge;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 MaxCartridge;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	EPickupType CartridgeType;
+	
+	UFUNCTION(BlueprintCallable)
+	void Reload();
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
+	TObjectPtr<UAnimMontage> ReloadMontage;
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Sound")
+	TObjectPtr<USoundBase> ReloadSound;
+	
 };

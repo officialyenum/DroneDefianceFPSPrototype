@@ -14,15 +14,16 @@ ABH_Gun::ABH_Gun()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	RootComponent = CreateDefaultSubobject<USceneComponent>("DefaultScene");
-	Gun = CreateDefaultSubobject<USkeletalMeshComponent>("Gun");
-	Gun->SetupAttachment(RootComponent);
-	Gun->SetGenerateOverlapEvents(false);
-	Gun->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GunComponent = CreateDefaultSubobject<USkeletalMeshComponent>("Gun");
+	GunComponent->SetupAttachment(RootComponent);
+	GunComponent->SetGenerateOverlapEvents(false);
+	GunComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
 	//Gun->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
 	
 	BurstPoint = CreateDefaultSubobject<USceneComponent>("BurstPoint");
-	BurstPoint->SetupAttachment(Gun);
+	BurstPoint->SetupAttachment(GunComponent);
+
 }
 
 // Called when the game starts or when spawned

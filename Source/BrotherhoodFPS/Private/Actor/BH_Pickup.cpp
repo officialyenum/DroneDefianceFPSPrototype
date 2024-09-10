@@ -46,11 +46,10 @@ void ABH_Pickup::SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AA
 		{
 			
 			CHPlayer->AddHealth(PickupValue);
-			CHPlayer->UpdateHealthUI();
 		}
 		else
 		{
-			CHPlayer->AddCartridge(PickupType, PickupValue);
+			CHPlayer->AddCartridge(PickupValue);
 		}
 		UGameplayStatics::PlaySoundAtLocation(this, PickupSound, GetActorLocation(), GetActorRotation(), 0.5f);
 		Destroy();

@@ -17,7 +17,27 @@ public:
 	ABH_Gun();
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Gun Components")
-	TObjectPtr<USkeletalMeshComponent> Gun;
+	TObjectPtr<USkeletalMeshComponent> GunComponent;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	FName GunName;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	float ShootRate;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	float BulletDamage;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	float ReloadTime;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 Ammo;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 MaxAmmo;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 Cartridge;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 MaxCartridge;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	EPickupType CartridgeType;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -54,22 +74,9 @@ public:
 	TObjectPtr<USoundBase> ReloadSound;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	float ShootRate;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	float BulletDamage;
-	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	bool CanShoot;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	bool FireButtonPressed;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 Ammo;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 MaxAmmo;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 Cartridge;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 MaxCartridge;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	EPickupType CartridgeType;
+	
+	
 };

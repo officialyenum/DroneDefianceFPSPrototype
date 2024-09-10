@@ -58,7 +58,7 @@ void ABH_PlayerController::SetupInputComponent()
 void ABH_PlayerController::MoveForward(const FInputActionValue& InputActionValue)
 {
 	const float InputAxis = InputActionValue.Get<float>();
-	if (APawn* ControlledPawn = GetPawn<APawn>())
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		const FVector ForwardDirection = ControlledPawn->GetActorForwardVector();
 		ControlledPawn->AddMovementInput(ForwardDirection,InputAxis);
@@ -97,8 +97,21 @@ void ABH_PlayerController::Shoot(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		ControlledPawn->FireWeapon();
-		ControlledPawn->UpdateGunUI();
+		if (ControlledPawn->Ammo <= 0)
+		{
+			if (ControlledPawn->Cartridge > 0)
+			{
+				ControlledPawn->ReloadWeapon();
+			}
+			else
+			{
+				ControlledPawn->TriggerOutOfAmmoMessageInUI();
+			}
+		}
+		else
+		{
+			ControlledPawn->FireWeapon();
+		}
 	}
 }
 
@@ -175,8 +188,6 @@ void ABH_PlayerController::EquipWeapon(const FInputActionValue& InputActionValue
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Equipping New Weapon")));
-		ControlledPawn->EquippedGunIndex += InputAxis;
-		ControlledPawn->EquipWeapon();
 	}
 }
 
@@ -186,6 +197,5 @@ void ABH_PlayerController::Reload(const FInputActionValue& InputActionValue)
 	{
 		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Reloading Weapon")));
 		ControlledPawn->ReloadWeapon();
-		ControlledPawn->UpdateGunUI();
 	}
 }

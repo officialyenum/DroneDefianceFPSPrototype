@@ -35,7 +35,10 @@ public:
 	ABH_PatrolPoint* GetPatrolPoint(){ return NextPatrolPoint; };
 	UFUNCTION(BlueprintCallable, Category="Drone Functions")
 	AActor* GetGoalActor(){ return GoalActor; };
-	
+	UFUNCTION(BlueprintCallable, Category="Drone Functions")
+	float GetHealth(){ return Health; };
+	UFUNCTION(BlueprintCallable, Category="Drone Functions")
+	float GetMaxHealth(){ return MaxHealth; };
 	
 	UFUNCTION(BlueprintCallable, Category="Drone Functions")
 	void SetDroneState(EDroneState NewState);
@@ -61,8 +64,6 @@ protected:
 	virtual void TakeHitDamage(AActor* DamagedActor, float Damage,const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser) override;
 	UFUNCTION()
 	void InitPatrolPoint();
-	float GetHealth(){ return Health; };
-	float GetMaxHealth(){ return MaxHealth; };
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Drone Param")
 	TObjectPtr<UParticleSystem> ExplodeFX;

@@ -20,6 +20,7 @@ ABH_Friendly::ABH_Friendly()
 void ABH_Friendly::BeginPlay()
 {
 	Super::BeginPlay();
+	CharacterType = ECharacterType::NPC;
 	OnTakeAnyDamage.AddDynamic(this,&ABH_Friendly::TakeHitDamage);
 	
 }

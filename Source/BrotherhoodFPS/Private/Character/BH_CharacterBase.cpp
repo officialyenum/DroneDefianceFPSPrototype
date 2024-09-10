@@ -20,23 +20,21 @@ ABH_CharacterBase::ABH_CharacterBase()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(false);
 	
-	PrimaryGun = CreateDefaultSubobject<UChildActorComponent>("PrimaryGun");
-	PrimaryGun->SetupAttachment(GetMesh());
-	SecondaryGun = CreateDefaultSubobject<UChildActorComponent>("SecondaryGun");
-	SecondaryGun->SetupAttachment(GetMesh());
-	//FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
-	//Gun->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
+	GunComponent = CreateDefaultSubobject<USkeletalMeshComponent>("GunComponent");
+	GunComponent->SetupAttachment(RootComponent);
+	GunComponent->SetGenerateOverlapEvents(false);
+	GunComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	BurstPoint = CreateDefaultSubobject<USceneComponent>("BurstPoint");
+	BurstPoint->SetupAttachment(GunComponent);
 }
 
 // Called when the game starts or when spawned
 void ABH_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	GunInventory.Add(PrimaryGun);
-	GunInventory.Add(SecondaryGun);
-	EquippedGunIndex = 0;
-	EquipWeapon();
+	SetUpWeapon();
+	SetUpAnimBp();
 }
 
 // Called every frame
@@ -57,56 +55,69 @@ void ABH_CharacterBase::PlayFireMontage()
 
 void ABH_CharacterBase::ResetCanShoot()
 {
-	EquippedGun->CanShoot = true;
+	CanShoot = true;
+}
+
+void ABH_CharacterBase::PlaySoundAndBurstEmitterFX()
+{
+	FVector Loc = BurstPoint->GetComponentLocation();
+	FRotator Rot = BurstPoint->GetComponentRotation();
+	FVector Scale = FVector(0.25);
+	UGameplayStatics::SpawnEmitterAtLocation(this, ShotBurstFX, Loc, Rot, Scale, true);
+	UGameplayStatics::PlaySoundAtLocation(this, ShotSound, Loc, Rot, 0.5f);
 }
 
 void ABH_CharacterBase::FireWeapon()
 {
-	if (!EquippedGun->CanShoot || EquippedGun->Ammo <= 0)
+	if (!CanShoot || Ammo <= 0)
 	{
 		return;
 	}
-	EquippedGun->CanShoot = false;
-	EquippedGun->PlaySoundAndBurstEmitterFX();
+	CanShoot = false;
+	PlaySoundAndBurstEmitterFX();
 	PlayFireMontage();
 	PerformLineTrace();
-	EquippedGun->Ammo--;
+	Ammo--;
 	// delay for 2 seconds
 	// Create a timer handle
 	FTimerHandle TimerHandle;
 
 	// Bind the ResetCanShoot function to be called after 2 seconds
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_CharacterBase::ResetCanShoot, EquippedGun->ShootRate, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_CharacterBase::ResetCanShoot, ShootRate, false);
 }
 
-void ABH_CharacterBase::EquipWeapon()
+void ABH_CharacterBase::SetUpWeapon()
 {
-	EquippedGunIndex = FMath::Clamp(EquippedGunIndex, 0, GunInventory.Num());
-	if (EquippedGunIndex > GunInventory.Num() - 1)
-	{
-		EquippedGunIndex = 0;
-	}
-	for (auto Element : GunInventory	)
-	{
-		Element->SetVisibility(false);
-	}
 	FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
-	GunInventory[EquippedGunIndex]->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
-	GunInventory[EquippedGunIndex]->SetVisibility(true);
-	EquippedGun = Cast<ABH_Gun>(GunInventory[EquippedGunIndex]->GetChildActor());
+	GunComponent->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
+	GunComponent->SetVisibility(true);
 }
 
 void ABH_CharacterBase::PerformLineTrace()
 {
-	AActor* Camera = UGameplayStatics::GetPlayerCameraManager(this,0);
-	FVector Loc = Camera->GetActorLocation();
-	FVector FV = Camera->GetActorForwardVector() * 5000;
+	FVector Loc;
+	FVector FV;
+	if (CharacterType == ECharacterType::Player)
+	{
+		AActor* Camera = UGameplayStatics::GetPlayerCameraManager(this,0);
+		Loc = Camera->GetActorLocation();
+		FV = Camera->GetActorForwardVector() * 5000;
+	}
+	else
+	{
+		Loc = BurstPoint->GetComponentLocation();
+		FV = BurstPoint->GetForwardVector() * 5000;
+		FVector Start = Loc; // Starting point of the line trace
+		FVector End = Loc + FV; // End point of the line trace 
+		// Draw a red debug line for visualization (for 5 seconds)
+		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f); 
+	}
 	FVector LOCFV = Loc + FV;
-
+	
 	FHitResult HitResult;
 	GetWorld()->LineTraceSingleByChannel(HitResult, Loc, LOCFV, ECC_Visibility);
 	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactFX, HitResult.ImpactPoint,FRotator(0.F),FVector(1));
-	if (ICombatInterface* Actor = Cast<ICombatInterface>(HitResult.GetActor()))
+	if (HitResult.GetActor())
 	{
 		ApplyDamageToEnemy(HitResult.GetActor());
 	}
@@ -114,8 +125,14 @@ void ABH_CharacterBase::PerformLineTrace()
 
 void ABH_CharacterBase::ReloadWeapon()
 {
-	EquippedGun->Reload();
-	AnimBP->Montage_Play(EquippedGun->ReloadMontage);
+	CanShoot = false;
+	Reload();
+	AnimBP->Montage_Play(ReloadMontage);
+	
+	// Create a timer handle
+	FTimerHandle TimerHandle;
+	// Bind the ResetCanShoot function to be called after 2 seconds
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_CharacterBase::ResetCanShoot, ReloadTime, false);
 }
 
 void ABH_CharacterBase::ApplyDamageToEnemy(AActor* Actor)
@@ -132,18 +149,18 @@ void ABH_CharacterBase::AddHealth(float NewHealth)
 	Health += FMath::Clamp(NewHealth, 0, MaxHealth);
 }
 
-void ABH_CharacterBase::AddCartridge(EPickupType CartridgeType, float CartridgeAmount)
+void ABH_CharacterBase::AddCartridge(float CartridgeAmount)
 {
-	for (auto Element : GunInventory)
+	Cartridge = FMath::Clamp(Cartridge + CartridgeAmount, 0, MaxCartridge);
+}
+
+void ABH_CharacterBase::Reload()
+{
+	if (Cartridge > 0)
 	{
-		if (ABH_Gun* CurrentGun = Cast<ABH_Gun>(Element->GetChildActor()))
-		{
-			if(CurrentGun->CartridgeType == CartridgeType)
-			{
-				CurrentGun->AddCartridge(CartridgeAmount);
-			}
-		}
-		
+		Cartridge--;
+		Ammo = FMath::Clamp(MaxAmmo, 0, MaxAmmo);
+		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
 	}
 }
 
