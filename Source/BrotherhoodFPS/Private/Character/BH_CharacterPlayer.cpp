@@ -19,7 +19,7 @@ ABH_CharacterPlayer::ABH_CharacterPlayer()
 	bUseControllerRotationYaw = true;
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(GetCapsuleComponent());
-	
+	Camera->SetFieldOfView(90.0f);
 }
 
 // Called when the game starts or when spawned

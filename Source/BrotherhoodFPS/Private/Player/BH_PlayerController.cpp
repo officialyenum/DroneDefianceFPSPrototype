@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "Character/BH_CharacterPlayer.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ABH_PlayerController::ABH_PlayerController()
 {
@@ -49,6 +50,9 @@ void ABH_PlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ABH_PlayerController::FiringOff);
 	EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ABH_PlayerController::EquipWeapon);
 	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABH_PlayerController::Reload);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABH_PlayerController::Sprint);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABH_PlayerController::StopSprint);
+
 }
 
 void ABH_PlayerController::MoveForward(const FInputActionValue& InputActionValue)
@@ -103,6 +107,10 @@ void ABH_PlayerController::AimOn(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->AnimBP->IsAiming = true;
+		if (auto fpsCam = ControlledPawn->Camera)
+		{
+			fpsCam->SetFieldOfView(60.0f);
+		}
 	}
 }
 
@@ -111,6 +119,10 @@ void ABH_PlayerController::AimOff(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->AnimBP->IsAiming = false;
+		if (auto fpsCam = ControlledPawn->Camera)
+		{
+			fpsCam->SetFieldOfView(90.0f);
+		}
 	}
 }
 
@@ -127,6 +139,24 @@ void ABH_PlayerController::FiringOff(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->FireButtonPressed = false;
+	}
+}
+
+void ABH_PlayerController::Sprint(const FInputActionValue& InputActionValue)
+{
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->GetCharacterMovement()->MaxWalkSpeed = 1500.0f;
+		ControlledPawn->AnimBP->IsSprinting = true;
+	}
+}
+
+void ABH_PlayerController::StopSprint(const FInputActionValue& InputActionValue)
+{
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+		ControlledPawn->AnimBP->IsSprinting = false;
 	}
 }
 
