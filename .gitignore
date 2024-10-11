@@ -68,6 +68,8 @@ Build/*/**
 Saved/*
 Content/Assets/*
 Content/StarterContent/*
+Content/MegaScans/*
+Content/MSPresets/*
 
 # Compiled source files for the engine to use
 Intermediate/*
