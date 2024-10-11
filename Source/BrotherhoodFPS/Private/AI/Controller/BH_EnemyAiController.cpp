@@ -93,15 +93,17 @@ void ABH_EnemyAiController::SetupPerceptionSystem()
 	if (SightConfig)
 	{
 		SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception Component")));
-		SightConfig->SightRadius = 2000.f;
-		SightConfig->LoseSightRadius = SightConfig->SightRadius + 100.f;
-		SightConfig->PeripheralVisionAngleDegrees = 500.f;
-		SightConfig->SetMaxAge(5.f);
-		SightConfig->AutoSuccessRangeFromLastSeenLocation = 520.f;
+		SightConfig->SightRadius = 4000.f;
+		SightConfig->LoseSightRadius = SightConfig->SightRadius + 200.f;
+		SightConfig->PeripheralVisionAngleDegrees = 50.f;
+		SightConfig->SetMaxAge(0.f);
+		SightConfig->AutoSuccessRangeFromLastSeenLocation = -1.0f;
+		SightConfig->NearClippingRadius = 200.0f;
+		SightConfig->PointOfViewBackwardOffset = 200.0f;
 		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-
+		
 		GetPerceptionComponent()->SetDominantSense(*SightConfig->GetSenseImplementation());
 		GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &ABH_EnemyAiController::OnTargetDetected);
 
