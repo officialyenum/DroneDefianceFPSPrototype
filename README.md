@@ -7,20 +7,20 @@ Available for PC Download Starting November 2nd 2024
 ## Assets Used in Drone Defiance
 
 ### Environment:
-Modular Building Set – Unreal Engine Marketplace
-Industry Props Pack 6 – Unreal Engine Marketplace
+- Modular Building Set – Unreal Engine Marketplace
+- Industry Props Pack 6 – Unreal Engine Marketplace
 ### Props:
-Vehicle Variety Pack – Unreal Engine Marketplace (Cars)
-Keys Model by stfuaahil is licensed under Creative Commons Attribution
+- Vehicle Variety Pack – Unreal Engine Marketplace (Cars)
+- Keys Model by stfuaahil is licensed under Creative Commons Attribution
 ### Characters and Effects:
-Paragon Belica Drone – Unreal Engine Marketplace
-Paragon Twin Blast VFX – Unreal Engine Marketplace (Explosion VFX)
-Space Kit – Kenney.nl (Drone Core Mesh)
+- Paragon Belica Drone – Unreal Engine Marketplace
+- Paragon Twin Blast VFX – Unreal Engine Marketplace (Explosion VFX)
+- Space Kit – Kenney.nl (Drone Core Mesh)
 ### UI Elements:
-Crosshair Pack – Kenney.nl
-Input Prompts – Kenney.nl
+- Crosshair Pack – Kenney.nl
+- Input Prompts – Kenney.nl
 ### Sound:
-Dark Sci-Fi Cyberpunk Music by Arct Sound – Pixabay
+- Dark Sci-Fi Cyberpunk Music by Arct Sound – Pixabay
 ### Tutorials:
-Stylizing our HUD | Unreal Engine 5 FPS Beginner Course – YouTube (HUD Tutorial)
-UE5 Blueprint FPS: Make Your Own First Person Shooter In Unreal! – GameDev TV (FPS Course)
+- Stylizing our HUD | Unreal Engine 5 FPS Beginner Course – YouTube (HUD Tutorial)
+- UE5 Blueprint FPS: Make Your Own First Person Shooter In Unreal! – GameDev TV (FPS Course)
