@@ -5,6 +5,7 @@
 
 #include "Character/BH_Enemy.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Pawn/BH_Drone.h"
 
@@ -19,7 +20,6 @@ ABH_CharacterPlayer::ABH_CharacterPlayer()
 	bUseControllerRotationYaw = true;
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(GetCapsuleComponent());
-	
 }
 
 // Called when the game starts or when spawned
@@ -29,6 +29,7 @@ void ABH_CharacterPlayer::BeginPlay()
 	
 	OnTakeAnyDamage.AddDynamic(this,&ABH_CharacterPlayer::TakeHitDamage);
 	SetUpAnimBp();
+	DefaultFOV = Camera->FieldOfView; // Store default FOV
 }
 
 void ABH_CharacterPlayer::ApplyDamageToEnemy(AActor* Actor)
@@ -39,9 +40,8 @@ void ABH_CharacterPlayer::ApplyDamageToEnemy(AActor* Actor)
 	{
 		UGameplayStatics::ApplyDamage(Enemy,BulletDamage,GetController(),this,DamageType);
 	}
-	if (ABH_Drone* Enemy = Cast<ABH_Drone>(Actor))
+	if (AActor* Enemy = Cast<AActor>(Actor))
 	{
-		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Damage Applied To Drone")));
 		UGameplayStatics::ApplyDamage(Enemy, BulletDamage,GetController(),this,DamageType);
 	}
 }
@@ -53,11 +53,25 @@ void ABH_CharacterPlayer::TakeHitDamage(AActor* DamagedActor, float Damage, cons
 		
 	float NewHealth = Health - Damage;
 	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
+	CheckPlayerIsDead();
 }
 
 // Called every frame
 void ABH_CharacterPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (Strength < MaxStrength && AnimBP->IsSprinting == false)
+	{
+		Strength += 5.0f * DeltaTime;
+	}
+	if (Strength > 0 && AnimBP->IsSprinting == true)
+	{
+		Strength -= 20.0f * DeltaTime;
+		if(Strength <= 0)
+		{
+			GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+			AnimBP->IsSprinting = false;
+		}
+	}
 }
 

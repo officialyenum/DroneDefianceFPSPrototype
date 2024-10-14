@@ -35,6 +35,7 @@ ABH_CharacterBase::ABH_CharacterBase()
 void ABH_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+	SetUpAnimBp();
 }
 
 // Called every frame
@@ -89,17 +90,54 @@ void ABH_CharacterBase::FireWeapon()
 void ABH_CharacterBase::PerformLineTrace()
 {
 	AActor* Camera = UGameplayStatics::GetPlayerCameraManager(this,0);
+	if (!Camera)
+	{
+		return; // Ensure Camera exists
+	}
+	// Get the camera location and forward vector
 	FVector Loc = Camera->GetActorLocation();
 	FVector FV = Camera->GetActorForwardVector() * 5000;
-	FVector LOCFV = Loc + FV;
+	FVector LOCFV;
+	if (!AnimBP->IsAiming)
+	{
+		// Apply random inaccuracy to the forward vector
+		float RandomXOffset = FMath::RandRange(-500.0f, 500.0f); // Random X offset
+		float RandomZOffset = FMath::RandRange(-500.0f, 500.0f); // Random Z offset
 
+		FVector InaccurateForwardVector = FV;
+		InaccurateForwardVector.X += RandomXOffset;
+		InaccurateForwardVector.Z += RandomZOffset;
+
+		LOCFV = Loc + InaccurateForwardVector;
+	}else
+	{
+		LOCFV = Loc + FV;
+	}
 	FHitResult HitResult;
 	GetWorld()->LineTraceSingleByChannel(HitResult, Loc, LOCFV, ECC_Visibility);
-	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactFX, HitResult.ImpactPoint,FRotator(0.F),FVector(1));
-	if (ICombatInterface* Actor = Cast<ICombatInterface>(HitResult.GetActor()))
+	// Spawn visual effects on impact
+	if (HitResult.bBlockingHit)
 	{
-		ApplyDamageToEnemy(HitResult.GetActor());
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactFX, HitResult.ImpactPoint, FRotator::ZeroRotator, FVector(1.0f));
+        
+		// Apply damage if an enemy is hit
+		if (HitResult.GetActor())
+		{
+			ApplyDamageToEnemy(HitResult.GetActor());
+		}
 	}
+}
+
+void ABH_CharacterBase::ReloadWeapon()
+{
+	CanShoot = false;
+	Reload();
+	AnimBP->Montage_Play(ReloadMontage);
+	
+	// Create a timer handle
+	FTimerHandle TimerHandle;
+	// Bind the ResetCanShoot function to be called after 2 seconds
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABH_CharacterBase::ResetCanShoot, ReloadTime, false);
 }
 
 void ABH_CharacterBase::ApplyDamageToEnemy(AActor* Actor)
@@ -111,13 +149,23 @@ void ABH_CharacterBase::TakeHitDamage(AActor* DamagedActor, float Damage, const 
 {
 }
 
-void ABH_CharacterBase::AddAmmo(int32 NewAmmo)
+void ABH_CharacterBase::AddCartridge(int32 CartridgeAmount)
 {
-	Ammo += NewAmmo;
+	Cartridge = FMath::Clamp(Cartridge + CartridgeAmount, 0, MaxCartridge);
 }
 
 void ABH_CharacterBase::AddHealth(float NewHealth)
 {
 	Health += FMath::Clamp(NewHealth, 0, MaxHealth);
+}
+
+void ABH_CharacterBase::Reload()
+{
+	if (Cartridge > 0)
+	{
+		Cartridge--;
+		Ammo = FMath::Clamp(MaxAmmo, 0, MaxAmmo);
+		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
+	}
 }
 

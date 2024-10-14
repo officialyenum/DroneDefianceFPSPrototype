@@ -22,6 +22,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
 	bool IsMoving;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
+	bool IsSprinting;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
 	float Speed;
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
