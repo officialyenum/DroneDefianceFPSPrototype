@@ -19,7 +19,7 @@ ABH_Enemy::ABH_Enemy()
 void ABH_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
-	OnTakeAnyDamage.AddDynamic(this,&ABH_Enemy::TakeHitDamage);
+	//OnTakeAnyDamage.AddDynamic(this,&ABH_Enemy::TakeHitDamage);
 	
 }
 
@@ -37,8 +37,8 @@ void ABH_Enemy::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageT
 	AActor* DamageCauser)
 {
 	
-	float NewHealth = Health - Damage;
-	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
+	// float NewHealth = Health - Damage;
+	// Health = FMath::Clamp(NewHealth, 0, MaxHealth);
 }
 
 // Called every frame
