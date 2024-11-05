@@ -24,6 +24,9 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PlayerTick(float DeltaTime) override;
 	virtual void SetupInputComponent() override;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Camera Settings")
+	float InterpSpeed = 10.0f;
 
 private:
 	UPROPERTY(EditAnywhere, Category="Input")
@@ -45,8 +48,14 @@ private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> ReloadAction;
 	UPROPERTY(EditAnywhere, Category="Input")
+<<<<<<< HEAD
+	TObjectPtr<UInputAction> SprintAction;
+	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> QuitGameAction;
+=======
 	TObjectPtr<UInputAction> EquipAction;
 	TObjectPtr<UInputAction> SprintAction;
+>>>>>>> main
 
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void MoveForward(const struct FInputActionValue& InputActionValue);
@@ -73,7 +82,14 @@ private:
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void Jump(const struct FInputActionValue& InputActionValue);
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
+<<<<<<< HEAD
+	void Reload(const struct FInputActionValue& InputActionValue);
+	UFUNCTION(BlueprintCallable, Category="Player Actions")
+	void QuitGame(const struct FInputActionValue& InputActionValue);
+	
+=======
 	void EquipWeapon(const struct FInputActionValue& InputActionValue);
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void Reload(const struct FInputActionValue& InputActionValue);
+>>>>>>> main
 };

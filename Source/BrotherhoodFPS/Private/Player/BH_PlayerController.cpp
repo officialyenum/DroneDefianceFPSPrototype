@@ -8,6 +8,10 @@
 #include "Character/BH_CharacterPlayer.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+<<<<<<< HEAD
+#include "Kismet/GameplayStatics.h"
+=======
+>>>>>>> main
 
 ABH_PlayerController::ABH_PlayerController()
 {
@@ -48,11 +52,18 @@ void ABH_PlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &ABH_PlayerController::Shoot);
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &ABH_PlayerController::FiringOn);
 	EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, this, &ABH_PlayerController::FiringOff);
+<<<<<<< HEAD
+	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABH_PlayerController::Reload);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABH_PlayerController::Sprint);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABH_PlayerController::StopSprint);
+	EnhancedInputComponent->BindAction(QuitGameAction, ETriggerEvent::Started, this, &ABH_PlayerController::QuitGame);
+=======
 	EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ABH_PlayerController::EquipWeapon);
 	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABH_PlayerController::Reload);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABH_PlayerController::Sprint);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABH_PlayerController::StopSprint);
 
+>>>>>>> main
 }
 
 void ABH_PlayerController::MoveForward(const FInputActionValue& InputActionValue)
@@ -120,9 +131,19 @@ void ABH_PlayerController::AimOn(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->AnimBP->IsAiming = true;
+<<<<<<< HEAD
+		ControlledPawn->AnimBP->IsSprinting = false;
+
+		// Assuming the character has a camera component and default FOV is stored
+		if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
+		{
+			// Smoothly zoom in by decreasing the FOV
+			CameraComponent->SetFieldOfView(FMath::FInterpTo(CameraComponent->FieldOfView, 45.0f, GetWorld()->GetDeltaSeconds(), InterpSpeed)); // Zoom in, target FOV is 45
+=======
 		if (auto fpsCam = ControlledPawn->Camera)
 		{
 			fpsCam->SetFieldOfView(60.0f);
+>>>>>>> main
 		}
 	}
 }
@@ -132,9 +153,18 @@ void ABH_PlayerController::AimOff(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->AnimBP->IsAiming = false;
+<<<<<<< HEAD
+
+		// Reset the camera's FOV to its default value
+		if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
+		{
+			// Smoothly return to the default FOV
+			CameraComponent->SetFieldOfView(FMath::FInterpTo(CameraComponent->FieldOfView, ControlledPawn->DefaultFOV, GetWorld()->GetDeltaSeconds(), InterpSpeed)); // Reset to default FOV
+=======
 		if (auto fpsCam = ControlledPawn->Camera)
 		{
 			fpsCam->SetFieldOfView(90.0f);
+>>>>>>> main
 		}
 	}
 }
@@ -159,8 +189,16 @@ void ABH_PlayerController::Sprint(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
+<<<<<<< HEAD
+		if (ControlledPawn->Strength > 40 && ControlledPawn->AnimBP->IsAiming == false)
+		{
+			ControlledPawn->GetCharacterMovement()->MaxWalkSpeed = 1500.0f;
+			ControlledPawn->AnimBP->IsSprinting = true;
+		}
+=======
 		ControlledPawn->GetCharacterMovement()->MaxWalkSpeed = 1500.0f;
 		ControlledPawn->AnimBP->IsSprinting = true;
+>>>>>>> main
 	}
 }
 
@@ -181,6 +219,8 @@ void ABH_PlayerController::Jump(const FInputActionValue& InputActionValue)
 	}
 }
 
+<<<<<<< HEAD
+=======
 void ABH_PlayerController::EquipWeapon(const FInputActionValue& InputActionValue)
 {
 	
@@ -191,11 +231,31 @@ void ABH_PlayerController::EquipWeapon(const FInputActionValue& InputActionValue
 	}
 }
 
+>>>>>>> main
 void ABH_PlayerController::Reload(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
+<<<<<<< HEAD
+		if (ControlledPawn->Cartridge > 0)
+		{
+			GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Reloading Weapon")));
+			ControlledPawn->ReloadWeapon();
+		}
+	}
+}
+
+void ABH_PlayerController::QuitGame(const FInputActionValue& InputActionValue)
+{
+	// Check if the world is valid
+	if (UWorld* World = GetWorld())
+	{
+		// Open the "Main_Menu" level by name
+		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Quit Button Pressed")));
+		UGameplayStatics::OpenLevel(World, FName("Main_Menu"));
+=======
 		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Reloading Weapon")));
 		ControlledPawn->ReloadWeapon();
+>>>>>>> main
 	}
 }

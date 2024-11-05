@@ -6,7 +6,7 @@
 #include "Kismet/BlueprintTypeConversions.h"
 #include "Kismet/KismetMathLibrary.h"
 
-UBH_AnimInstanceBase::UBH_AnimInstanceBase()
+UBH_AnimInstanceBase::UBH_AnimInstanceBase(): IsAiming(false), IsMoving(false), IsSprinting(false), Speed(0)
 {
 	IsAiming=false;
 	IsMoving=false;

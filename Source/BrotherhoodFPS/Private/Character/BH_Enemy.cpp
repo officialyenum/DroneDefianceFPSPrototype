@@ -26,8 +26,12 @@ UBehaviorTree* ABH_Enemy::GetBehaviorTree() const
 void ABH_Enemy::BeginPlay()
 {
 	Super::BeginPlay();
+<<<<<<< HEAD
+	//OnTakeAnyDamage.AddDynamic(this,&ABH_Enemy::TakeHitDamage);
+=======
 	CharacterType = ECharacterType::Enemy;
 	OnTakeAnyDamage.AddDynamic(this,&ABH_Enemy::TakeHitDamage);
+>>>>>>> main
 	
 }
 
@@ -55,6 +59,10 @@ void ABH_Enemy::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageT
 	AActor* DamageCauser)
 {
 	
+<<<<<<< HEAD
+	// float NewHealth = Health - Damage;
+	// Health = FMath::Clamp(NewHealth, 0, MaxHealth);
+=======
 	float NewHealth = Health - Damage;
 	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
 	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("Damage Applied To Enemy")));
@@ -63,6 +71,7 @@ void ABH_Enemy::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageT
 		//Play Death Animation
 		Destroy();
 	}
+>>>>>>> main
 }
 
 // Called every frame

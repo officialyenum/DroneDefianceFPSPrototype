@@ -33,6 +33,14 @@ public:
 	virtual void BeginPlay() override;
 	UFUNCTION()
 	virtual void ApplyDamageToEnemy(AActor* Actor) override;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void CheckPlayerIsDead();
+	
+	
+	UFUNCTION(BlueprintCallable)
+	void ApplyCameraShake(TSubclassOf<class UCameraShakeBase> CameraShakeTemplate);
+	
 	UFUNCTION()
 	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	                        AController* InstigatedBy, AActor* DamageCauser) override;
@@ -47,4 +55,12 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
 	TObjectPtr<UCameraComponent> Camera;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
+	float DefaultFOV;
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
+	bool bHasKey = false;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
+	bool bIsAtEscapeVehicle = false;
 };

@@ -22,8 +22,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
 	bool IsMoving;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
+<<<<<<< HEAD
+=======
 	bool IsHoldingPistol;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
+>>>>>>> main
 	bool IsSprinting;
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category="Generic")
 	float Speed;

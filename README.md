@@ -23,4 +23,8 @@ Available for PC Download Starting November 2nd 2024
 - Dark Sci-Fi Cyberpunk Music by Arct Sound – Pixabay
 ### Tutorials:
 - Stylizing our HUD | Unreal Engine 5 FPS Beginner Course – YouTube (HUD Tutorial)
+<<<<<<< HEAD
 - UE5 Blueprint FPS: Make Your Own First Person Shooter In Unreal! – GameDev TV (FPS Course)
+=======
+- UE5 Blueprint FPS: Make Your Own First Person Shooter In Unreal! – GameDev TV (FPS Course)
+>>>>>>> main
