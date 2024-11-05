@@ -3,10 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Actor/BH_Gun.h"
 #include "Animation/BH_AnimInstanceBase.h"
-#include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
 #include "BH_CharacterBase.generated.h"
+
+UENUM(BlueprintType)
+enum class ECharacterType : uint8
+{
+	Player UMETA(DisplayName = "Player"),
+	Enemy UMETA(DisplayName = "Enemy"),
+	NPC UMETA(DisplayName = "NPC"),
+};
 
 UCLASS(Abstract)
 class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
@@ -16,9 +24,13 @@ class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ABH_CharacterBase();
+<<<<<<< HEAD
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdatePlayerParamStats(int32 bullet, int32 cartridge, int32 wasHit);
+=======
+
+>>>>>>> main
 	
 protected:
 	// Called when the game starts or when spawned
@@ -26,7 +38,6 @@ protected:
 	virtual void ApplyDamageToEnemy(AActor* Actor);
 	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 							AController* InstigatedBy, AActor* DamageCauser);
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -38,14 +49,14 @@ public:
 	void PlayFireMontage();
 
 	UFUNCTION(BlueprintCallable)
-	void PlaySoundAndBurstEmitterFX();
-
-	UFUNCTION(BlueprintCallable)
 	void ResetCanShoot();
 	
 	UFUNCTION(BlueprintCallable)
-	void FireWeapon();
+	void PlaySoundAndBurstEmitterFX();
 
+	UFUNCTION(BlueprintCallable)
+	void FireWeapon();
+	
 	UFUNCTION(BlueprintCallable)
 	void PerformLineTrace();
 	
@@ -53,6 +64,7 @@ public:
 	void ReloadWeapon();
 
 	UFUNCTION(BlueprintCallable)
+<<<<<<< HEAD
 	void AddCartridge(int32 CartridgeAmount);
 
 	UFUNCTION(BlueprintCallable)
@@ -66,17 +78,28 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Sound")
 	TObjectPtr<USoundBase> ReloadSound;
+=======
+	void ReloadWeapon();
+	
+	UFUNCTION(BlueprintCallable)
+	void SetUpWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void AddHealth(float NewHealth);
+	UFUNCTION(BlueprintCallable)
+	void AddCartridge(float CartridgeAmount);
+>>>>>>> main
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
 	TObjectPtr<USceneComponent> BurstPoint;
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<USkeletalMeshComponent> Gun;
+	TObjectPtr<USkeletalMeshComponent> GunComponent;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player FX")
 	TObjectPtr<UParticleSystem> ShotBurstFX;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player FX")
 	TObjectPtr<UParticleSystem> ImpactFX;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player SoundS")
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Sound")
 	TObjectPtr<USoundBase> ShotSound;
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
@@ -86,6 +109,8 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
 	TObjectPtr<UAnimMontage> AimMontage;
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Player Params")
+	ECharacterType CharacterType;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
 	float Strength;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
@@ -99,7 +124,6 @@ public:
 	float ShootRate;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	float BulletDamage;
-	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	bool CanShoot;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
@@ -110,8 +134,34 @@ public:
 	int32 Cartridge;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 Ammo;
+<<<<<<< HEAD
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 MaxCartridge;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 MaxAmmo;
+=======
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	FName GunName;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	float ReloadTime;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 MaxAmmo;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 Cartridge;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	int32 MaxCartridge;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
+	EPickupType CartridgeType;
+	
+	UFUNCTION(BlueprintCallable)
+	void Reload();
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
+	TObjectPtr<UAnimMontage> ReloadMontage;
+	
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Sound")
+	TObjectPtr<USoundBase> ReloadSound;
+	
+>>>>>>> main
 };

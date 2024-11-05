@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "BH_CharacterBase.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "Interaction/CombatInterface.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "BH_Enemy.generated.h"
 
 UCLASS()
@@ -16,8 +18,14 @@ public:
 	// Sets default values for this character's properties
 	ABH_Enemy();
 
+	UBehaviorTree* GetBehaviorTree() const;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	UFUNCTION()
+	void EnterCombatMode();
+	UFUNCTION()
+	void ExitCombatMode();
+	
 	UFUNCTION()
 	virtual void ApplyDamageToEnemy(AActor* Actor) override;
 	UFUNCTION()
@@ -28,4 +36,11 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	UBehaviorTree* Tree;
+	
+	UPROPERTY(VisibleAnywhere)
+	UAIPerceptionStimuliSourceComponent* StimulusSource;
+	void SetupStimulusSource();
 };

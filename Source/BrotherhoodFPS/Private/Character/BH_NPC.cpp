@@ -15,7 +15,7 @@ ABH_NPC::ABH_NPC()
 void ABH_NPC::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	CharacterType = ECharacterType::NPC;
 }
 
 // Called every frame
