@@ -24,13 +24,9 @@ class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
 public:
 	// Sets default values for this character's properties
 	ABH_CharacterBase();
-<<<<<<< HEAD
-	
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdatePlayerParamStats(int32 bullet, int32 cartridge, int32 wasHit);
-=======
 
->>>>>>> main
 	
 protected:
 	// Called when the game starts or when spawned
@@ -64,7 +60,6 @@ public:
 	void ReloadWeapon();
 
 	UFUNCTION(BlueprintCallable)
-<<<<<<< HEAD
 	void AddCartridge(int32 CartridgeAmount);
 
 	UFUNCTION(BlueprintCallable)
@@ -78,17 +73,10 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Sound")
 	TObjectPtr<USoundBase> ReloadSound;
-=======
-	void ReloadWeapon();
-	
+
 	UFUNCTION(BlueprintCallable)
 	void SetUpWeapon();
 
-	UFUNCTION(BlueprintCallable)
-	void AddHealth(float NewHealth);
-	UFUNCTION(BlueprintCallable)
-	void AddCartridge(float CartridgeAmount);
->>>>>>> main
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
 	TObjectPtr<USceneComponent> BurstPoint;
@@ -134,34 +122,9 @@ public:
 	int32 Cartridge;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 Ammo;
-<<<<<<< HEAD
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 MaxCartridge;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 MaxAmmo;
-=======
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	FName GunName;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	float ReloadTime;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 MaxAmmo;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 Cartridge;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 MaxCartridge;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	EPickupType CartridgeType;
-	
-	UFUNCTION(BlueprintCallable)
-	void Reload();
-	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
-	TObjectPtr<UAnimMontage> ReloadMontage;
-	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Sound")
-	TObjectPtr<USoundBase> ReloadSound;
-	
->>>>>>> main
 };

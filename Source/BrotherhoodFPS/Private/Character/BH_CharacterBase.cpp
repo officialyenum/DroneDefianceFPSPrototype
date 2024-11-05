@@ -33,10 +33,7 @@ ABH_CharacterBase::ABH_CharacterBase()
 void ABH_CharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-<<<<<<< HEAD
-=======
 	SetUpWeapon();
->>>>>>> main
 	SetUpAnimBp();
 }
 
@@ -99,7 +96,6 @@ void ABH_CharacterBase::SetUpWeapon()
 
 void ABH_CharacterBase::PerformLineTrace()
 {
-<<<<<<< HEAD
 	AActor* Camera = UGameplayStatics::GetPlayerCameraManager(this,0);
 	if (!Camera)
 	{
@@ -128,31 +124,6 @@ void ABH_CharacterBase::PerformLineTrace()
 	GetWorld()->LineTraceSingleByChannel(HitResult, Loc, LOCFV, ECC_Visibility);
 	// Spawn visual effects on impact
 	if (HitResult.bBlockingHit)
-=======
-	FVector Loc;
-	FVector FV;
-	if (CharacterType == ECharacterType::Player)
-	{
-		AActor* Camera = UGameplayStatics::GetPlayerCameraManager(this,0);
-		Loc = Camera->GetActorLocation();
-		FV = Camera->GetActorForwardVector() * 5000;
-	}
-	else
-	{
-		Loc = BurstPoint->GetComponentLocation();
-		FV = BurstPoint->GetForwardVector() * 5000;
-		FVector Start = Loc; // Starting point of the line trace
-		FVector End = Loc + FV; // End point of the line trace 
-		// Draw a red debug line for visualization (for 5 seconds)
-		DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 1.0f, 0, 1.0f); 
-	}
-	FVector LOCFV = Loc + FV;
-	
-	FHitResult HitResult;
-	GetWorld()->LineTraceSingleByChannel(HitResult, Loc, LOCFV, ECC_Visibility);
-	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactFX, HitResult.ImpactPoint,FRotator(0.F),FVector(1));
-	if (HitResult.GetActor())
->>>>>>> main
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactFX, HitResult.ImpactPoint, FRotator::ZeroRotator, FVector(1.0f));
         
@@ -185,36 +156,22 @@ void ABH_CharacterBase::TakeHitDamage(AActor* DamagedActor, float Damage, const 
 {
 }
 
-<<<<<<< HEAD
 void ABH_CharacterBase::AddCartridge(int32 CartridgeAmount)
 {
 	Cartridge = FMath::Clamp(Cartridge + CartridgeAmount, 0, MaxCartridge);
 }
 
-=======
->>>>>>> main
 void ABH_CharacterBase::AddHealth(float NewHealth)
 {
 	Health += FMath::Clamp(NewHealth, 0, MaxHealth);
 }
 
-<<<<<<< HEAD
-=======
-void ABH_CharacterBase::AddCartridge(float CartridgeAmount)
-{
-	Cartridge = FMath::Clamp(Cartridge + CartridgeAmount, 0, MaxCartridge);
-}
-
->>>>>>> main
 void ABH_CharacterBase::Reload()
 {
 	if (Cartridge > 0)
 	{
 		Cartridge--;
-<<<<<<< HEAD
 		UpdatePlayerParamStats(0, 1, 0);
-=======
->>>>>>> main
 		Ammo = FMath::Clamp(MaxAmmo, 0, MaxAmmo);
 		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
 	}
