@@ -172,6 +172,7 @@ void ABH_CharacterBase::Reload()
 	{
 		Cartridge--;
 		UpdatePlayerParamStats(0, 1, 0);
+
 		Ammo = FMath::Clamp(MaxAmmo, 0, MaxAmmo);
 		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
 	}

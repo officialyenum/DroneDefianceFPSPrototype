@@ -81,4 +81,5 @@ private:
 	void Reload(const struct FInputActionValue& InputActionValue);
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void QuitGame(const struct FInputActionValue& InputActionValue);
+	
 };

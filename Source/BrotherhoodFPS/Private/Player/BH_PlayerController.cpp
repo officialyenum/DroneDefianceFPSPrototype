@@ -8,9 +8,7 @@
 #include "Character/BH_CharacterPlayer.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 #include "Kismet/GameplayStatics.h"
-
 
 ABH_PlayerController::ABH_PlayerController()
 {
@@ -123,7 +121,6 @@ void ABH_PlayerController::AimOn(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->AnimBP->IsAiming = true;
-
 		ControlledPawn->AnimBP->IsSprinting = false;
 
 		// Assuming the character has a camera component and default FOV is stored
@@ -140,12 +137,12 @@ void ABH_PlayerController::AimOff(const FInputActionValue& InputActionValue)
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
 		ControlledPawn->AnimBP->IsAiming = false;
-
 		// Reset the camera's FOV to its default value
 		if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
 		{
 			// Smoothly return to the default FOV
 			CameraComponent->SetFieldOfView(FMath::FInterpTo(CameraComponent->FieldOfView, ControlledPawn->DefaultFOV, GetWorld()->GetDeltaSeconds(), InterpSpeed)); // Reset to default FOV
+
 		}
 	}
 }
@@ -194,7 +191,6 @@ void ABH_PlayerController::Jump(const FInputActionValue& InputActionValue)
 		ControlledPawn->Jump();
 	}
 }
-
 
 void ABH_PlayerController::Reload(const FInputActionValue& InputActionValue)
 {

@@ -21,6 +21,20 @@ ABH_CharacterPlayer::ABH_CharacterPlayer()
 	bUseControllerRotationYaw = true;
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(GetCapsuleComponent());
+	Camera->SetFieldOfView(90.0f);
+
+	RespawnLocation = FVector(-1970.000000,6280.000000,98.000100);
+}
+
+void ABH_CharacterPlayer::Die()
+{
+	Respawn();
+}
+
+void ABH_CharacterPlayer::Respawn()
+{
+	Health = MaxHealth;
+	SetActorLocation(RespawnLocation);
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +45,7 @@ void ABH_CharacterPlayer::BeginPlay()
 	OnTakeAnyDamage.AddDynamic(this,&ABH_CharacterPlayer::TakeHitDamage);
 	SetUpAnimBp();
 	DefaultFOV = Camera->FieldOfView; // Store default FOV
+	CharacterType = ECharacterType::Player;
 
 }
 
@@ -66,6 +81,10 @@ void ABH_CharacterPlayer::TakeHitDamage(AActor* DamagedActor, float Damage, cons
 	CheckPlayerIsDead();
 	UpdatePlayerParamStats(0, 0, Damage);
 
+	if (NewHealth <= 0)
+	{
+		Die();
+	}
 }
 
 // Called every frame

@@ -122,6 +122,7 @@ public:
 	int32 Cartridge;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 Ammo;
+
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
 	int32 MaxCartridge;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
