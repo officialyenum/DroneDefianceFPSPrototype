@@ -25,6 +25,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void CheckPlayerIsDead();
 	
+	
+	UFUNCTION(BlueprintCallable)
+	void ApplyCameraShake(TSubclassOf<class UCameraShakeBase> CameraShakeTemplate);
+	
 	UFUNCTION()
 	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	                        AController* InstigatedBy, AActor* DamageCauser) override;

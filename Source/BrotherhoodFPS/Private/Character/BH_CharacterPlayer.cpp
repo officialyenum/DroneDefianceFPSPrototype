@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Pawn/BH_Drone.h"
+#include "Player/BH_PlayerController.h"
 
 
 // Sets default values
@@ -46,14 +47,23 @@ void ABH_CharacterPlayer::ApplyDamageToEnemy(AActor* Actor)
 	}
 }
 
+void ABH_CharacterPlayer::ApplyCameraShake(TSubclassOf<class UCameraShakeBase> CameraShakeTemplate)
+{
+	if(CameraShakeTemplate)
+	{
+		GetController<ABH_PlayerController>()->ClientStartCameraShake(CameraShakeTemplate);
+	}
+}
+
 void ABH_CharacterPlayer::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-	AController* InstigatedBy, AActor* DamageCauser)
+                                        AController* InstigatedBy, AActor* DamageCauser)
 {
 	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("Player Took Damage")));
 		
 	float NewHealth = Health - Damage;
 	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
 	CheckPlayerIsDead();
+	UpdatePlayerParamStats(0, 0, Damage);
 }
 
 // Called every frame

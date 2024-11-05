@@ -17,6 +17,8 @@ public:
 	// Sets default values for this character's properties
 	ABH_CharacterBase();
 	
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdatePlayerParamStats(int32 bullet, int32 cartridge, int32 wasHit);
 	
 protected:
 	// Called when the game starts or when spawned

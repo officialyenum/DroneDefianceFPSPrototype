@@ -79,6 +79,7 @@ void ABH_CharacterBase::FireWeapon()
 	PlayFireMontage();
 	PerformLineTrace();
 	Ammo--;
+	UpdatePlayerParamStats(1, 0, 0);
 	// delay for 2 seconds
 	// Create a timer handle
 	FTimerHandle TimerHandle;
@@ -96,7 +97,7 @@ void ABH_CharacterBase::PerformLineTrace()
 	}
 	// Get the camera location and forward vector
 	FVector Loc = Camera->GetActorLocation();
-	FVector FV = Camera->GetActorForwardVector() * 5000;
+	FVector FV = Camera->GetActorForwardVector() * 50000;
 	FVector LOCFV;
 	if (!AnimBP->IsAiming)
 	{
@@ -164,6 +165,7 @@ void ABH_CharacterBase::Reload()
 	if (Cartridge > 0)
 	{
 		Cartridge--;
+		UpdatePlayerParamStats(0, 1, 0);
 		Ammo = FMath::Clamp(MaxAmmo, 0, MaxAmmo);
 		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
 	}
