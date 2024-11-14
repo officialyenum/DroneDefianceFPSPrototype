@@ -4,6 +4,8 @@ Earth is on the brink of destruction, and you're its last hope. In Drone Defianc
 
 Available for PC Download Starting November 2nd 2024
 
+- Read How I Made Drone Defiance Here : https://github.com/officialyenum/DroneDefianceFPSPrototype/wiki/Drone-Defiance
+
 ## Assets Used in Drone Defiance
 
 ### Environment:
