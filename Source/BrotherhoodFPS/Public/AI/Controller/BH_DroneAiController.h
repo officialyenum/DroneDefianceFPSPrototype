@@ -8,6 +8,7 @@
 #include "BH_DroneAiController.generated.h"
 
 class UAISenseConfig_Sight;
+class UAISenseConfig_Hearing;
 
 UCLASS()
 class BROTHERHOODFPS_API ABH_DroneAiController : public AAIController
@@ -25,10 +26,10 @@ public:
 	UAIPerceptionComponent* UaiPerceptionComponent;
 	UPROPERTY(VisibleAnywhere, Category = AI)
 	UAISenseConfig_Sight* SightConfig;
-
-	UFUNCTION()
-	void OnDroneHit(AActor* Actor);
+	UPROPERTY(VisibleAnywhere, Category = AI)
+	UAISenseConfig_Hearing* HearingConfig;
 protected:
+	virtual void BeginPlay() override;
 	virtual void OnPossess(APawn* InPawn) override;
 private:
 

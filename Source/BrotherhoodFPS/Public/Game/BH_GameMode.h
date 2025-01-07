@@ -14,4 +14,6 @@ class BROTHERHOODFPS_API ABH_GameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void PawnKilled(APawn* PawnKilled);
 };

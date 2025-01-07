@@ -3,10 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Actor/BH_Gun.h"
 #include "Animation/BH_AnimInstanceBase.h"
 #include "GameFramework/Character.h"
+#include "Interaction/CombatInterface.h"
 #include "BH_CharacterBase.generated.h"
+
+class UWeaponSystem;
+class UHealthSystem;
+class ABH_Gun;
 
 UENUM(BlueprintType)
 enum class ECharacterType : uint8
@@ -17,23 +21,46 @@ enum class ECharacterType : uint8
 };
 
 UCLASS(Abstract)
-class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter
+class BROTHERHOODFPS_API ABH_CharacterBase : public ACharacter, public ICombatInterface
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
 	ABH_CharacterBase();
+	virtual void Fire() override;
+	/**Combat Handlers*/
+	UFUNCTION()
+	virtual void HandleHealthDamaged(float NewHealth, float NewMaxHealth, float HealthChange) override;
+	UFUNCTION()
+	virtual void HandleHealthLow(float CurrentHealth) override;
+	UFUNCTION()
+	virtual void HandleHealthDead(AController* causer) override;
+	UFUNCTION()
+	virtual void HandleShieldDamaged(float NewShield, float MaxShield, float ShieldChange) override;
+	UFUNCTION()
+	virtual void HandleShieldDestroyed(AController* causer) override;
+	UFUNCTION()
+	virtual void HandleCartridgeEmpty(FString Message) override;
+	UFUNCTION()
+	virtual void HandleReloadStart() override;
+	UFUNCTION()
+	virtual void HandleReloadEnd() override;
+	/**Combat Handlers*/
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdatePlayerParamStats(int32 bullet, int32 cartridge, int32 wasHit);
 
-	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	UFUNCTION(BlueprintCallable)
 	virtual void ApplyDamageToEnemy(AActor* Actor);
 	virtual void TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-							AController* InstigatedBy, AActor* DamageCauser);
+	                           AController* InstigatedBy, AActor* DamageCauser);
+
+	virtual void PostInitializeComponents() override;
+	
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -45,28 +72,7 @@ public:
 	void PlayFireMontage();
 
 	UFUNCTION(BlueprintCallable)
-	void ResetCanShoot();
-	
-	UFUNCTION(BlueprintCallable)
-	void PlaySoundAndBurstEmitterFX();
-
-	UFUNCTION(BlueprintCallable)
 	void FireWeapon();
-	
-	UFUNCTION(BlueprintCallable)
-	void PerformLineTrace();
-	
-	UFUNCTION(BlueprintCallable)
-	void ReloadWeapon();
-
-	UFUNCTION(BlueprintCallable)
-	void AddCartridge(int32 CartridgeAmount);
-
-	UFUNCTION(BlueprintCallable)
-	void AddHealth(float NewHealth);
-	
-	UFUNCTION(BlueprintCallable)
-	void Reload();
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
 	TObjectPtr<UAnimMontage> ReloadMontage;
@@ -76,12 +82,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetUpWeapon();
-
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<USceneComponent> BurstPoint;
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Player Components")
-	TObjectPtr<USkeletalMeshComponent> GunComponent;
+	UFUNCTION(BlueprintCallable)
+	void SetUpHealth();
 	
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player FX")
 	TObjectPtr<UParticleSystem> ShotBurstFX;
@@ -97,35 +99,17 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Animations")
 	TObjectPtr<UAnimMontage> AimMontage;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Player Params")
-	ECharacterType CharacterType;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
-	float Strength;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
-	float MaxStrength;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
-	float Health;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player Params")
-	float MaxHealth;
+	UFUNCTION(BlueprintCallable)
+	UWeaponSystem* GetWeaponSystem() const { return WeaponSystem; }
 	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	float ShootRate;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	float BulletDamage;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	bool CanShoot;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	bool FireButtonPressed;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	float ReloadTime;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 Cartridge;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 Ammo;
+	UFUNCTION(BlueprintCallable)
+	UHealthSystem* GetHealthSystem() const { return HealthSystem; }
 
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 MaxCartridge;
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Gun Params")
-	int32 MaxAmmo;
+private:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon", meta=(AllowPrivateAccess= "true"))
+	TObjectPtr<class UWeaponSystem> WeaponSystem;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta=(AllowPrivateAccess= "true"))
+	TObjectPtr<class UHealthSystem> HealthSystem;
 };

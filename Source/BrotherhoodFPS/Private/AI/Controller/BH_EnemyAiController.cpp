@@ -9,13 +9,33 @@
 #include "Perception/AIPerceptionTypes.h"
 
 #include "Character/BH_Enemy.h"
+#include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Sight.h"
 
 
 ABH_EnemyAiController::ABH_EnemyAiController(FObjectInitializer const& ObjectInitializer)
 {
 	SetupPerceptionSystem();
+}
+
+void ABH_EnemyAiController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	APawn* PawnPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(),0);
+	// SetFocus(PawnPlayer);
+
+	if (GetBehaviourTree() !=nullptr)
+	{
+		RunBehaviorTree(GetBehaviourTree());
+		if (PawnPlayer && GetPawn())
+		{
+			GetBlackboardComponent()->SetValueAsObject(TEXT("Player"), PawnPlayer);
+			GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), GetPawn()->GetActorLocation());
+		}
+	}
 }
 
 ETeamAttitude::Type ABH_EnemyAiController::GetTeamAttitudeTowards(const AActor& Other) const
@@ -70,19 +90,34 @@ void ABH_EnemyAiController::OnEnemyHit(AActor* Actor)
 	}
 }
 
+bool ABH_EnemyAiController::IsDead() const
+{
+	ABH_Enemy* ControlledCharacter = Cast<ABH_Enemy>(GetPawn());
+	if (ControlledCharacter != nullptr)
+	{
+		return ControlledCharacter->IsDead();
+	}
+	return true;
+}
+
 
 void ABH_EnemyAiController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
+	APawn* PawnPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(),0);
 	if (ABH_Enemy* const npc = Cast<ABH_Enemy>(InPawn))
 	{
-		if (UBehaviorTree* const bTree = npc->GetBehaviorTree())
+		if (UBehaviorTree* const bTree = GetBehaviourTree())
 		{
 			UBlackboardComponent* b;
 			UseBlackboard(bTree->BlackboardAsset, b);
 			Blackboard = b;
 			RunBehaviorTree(bTree);
+			if (PawnPlayer && npc)
+			{
+				GetBlackboardComponent()->SetValueAsObject(TEXT("Player"), PawnPlayer);
+				GetBlackboardComponent()->SetValueAsVector(TEXT("StartLocation"), npc->GetActorLocation());
+			}
 		}
 	};
 }
@@ -90,6 +125,7 @@ void ABH_EnemyAiController::OnPossess(APawn* InPawn)
 void ABH_EnemyAiController::SetupPerceptionSystem()
 {
 	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("Sight Config"));
+	HearingConfig = CreateDefaultSubobject<UAISenseConfig_Hearing>(TEXT("Hearing Config"));
 	if (SightConfig)
 	{
 		SetPerceptionComponent(*CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Perception Component")));
@@ -103,7 +139,13 @@ void ABH_EnemyAiController::SetupPerceptionSystem()
 		SightConfig->DetectionByAffiliation.bDetectEnemies = true;
 		SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
 		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
-		
+		if(HearingConfig){
+			HearingConfig->HearingRange = 3000.0f;
+			HearingConfig->DetectionByAffiliation.bDetectEnemies = true;
+			HearingConfig->DetectionByAffiliation.bDetectFriendlies = true;
+			HearingConfig->DetectionByAffiliation.bDetectNeutrals = true;
+			
+		}
 		GetPerceptionComponent()->SetDominantSense(*SightConfig->GetSenseImplementation());
 		GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &ABH_EnemyAiController::OnTargetDetected);
 
@@ -115,21 +157,20 @@ void ABH_EnemyAiController::SetupPerceptionSystem()
 
 void ABH_EnemyAiController::OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus)
 {
-	if (auto* const ch = Cast<ABH_CharacterPlayer>(Actor)) 
+	if (ABH_CharacterPlayer* const ch = Cast<ABH_CharacterPlayer>(Actor)) 
 	{
 		if (Stimulus.WasSuccessfullySensed())
 		{
-			
 			Cast<ABH_Enemy>(GetPawn())->EnterCombatMode();
-			GetBlackboardComponent()->SetValueAsObject("PlayerTarget", ch);
+			GetBlackboardComponent()->SetValueAsObject("Player", ch);
+			GetBlackboardComponent()->SetValueAsVector("LastKnownLocation", ch->GetActorLocation());
 			GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Green,FString::Printf(TEXT("Player Seen")));
 		}
 		else
 		{
 			Cast<ABH_Enemy>(GetPawn())->ExitCombatMode();
-			GetBlackboardComponent()->SetValueAsObject("PlayerTarget", nullptr);
+			GetBlackboardComponent()->ClearValue("Player");
 			GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("Player Lost")));
 		}
-		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", Stimulus.WasSuccessfullySensed());
 	}
 }

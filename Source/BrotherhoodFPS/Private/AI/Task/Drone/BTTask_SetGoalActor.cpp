@@ -21,11 +21,11 @@ EBTNodeResult::Type UBTTask_SetGoalActor::ExecuteTask(UBehaviorTreeComponent& Ow
 			if (auto* npc = Cast<ABH_Drone>(cont->GetPawn()))
 			{
 				// get the current patrol path in vector from the npc - this is the local to the patron path actor
-				auto const Point = npc->GetGoalActor();
-				
-				bc->SetValueAsObject(GoalActorLocationKey.SelectedKeyName, Point);
-				// finish with success
-				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+				// auto const Point = npc->GetGoalActor();
+				//
+				// bc->SetValueAsObject(GoalActorLocationKey.SelectedKeyName, Point);
+				// // finish with success
+				// FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 				return EBTNodeResult::Succeeded;
 			}
 		}
