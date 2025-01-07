@@ -5,7 +5,10 @@
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Actor/BH_Gun.h"
 #include "Character/BH_CharacterPlayer.h"
+#include "Component/HealthSystem.h"
+#include "Component/WeaponSystem.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -52,6 +55,7 @@ void ABH_PlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ABH_PlayerController::Reload);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ABH_PlayerController::Sprint);
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABH_PlayerController::StopSprint);
+	EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ABH_PlayerController::EquipItem);
 	EnhancedInputComponent->BindAction(QuitGameAction, ETriggerEvent::Started, this, &ABH_PlayerController::QuitGame);
 
 }
@@ -98,21 +102,7 @@ void ABH_PlayerController::Shoot(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		if (ControlledPawn->Ammo <= 0)
-		{
-			if (ControlledPawn->Cartridge > 0)
-			{
-				ControlledPawn->ReloadWeapon();
-			}
-			else
-			{
-				ControlledPawn->TriggerOutOfAmmoMessageInUI();
-			}
-		}
-		else
-		{
-			ControlledPawn->FireWeapon();
-		}
+		ControlledPawn->GetWeaponSystem()->FireWeapon();
 	}
 }
 
@@ -120,15 +110,7 @@ void ABH_PlayerController::AimOn(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		ControlledPawn->AnimBP->IsAiming = true;
-		ControlledPawn->AnimBP->IsSprinting = false;
-
-		// Assuming the character has a camera component and default FOV is stored
-		if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
-		{
-			// Smoothly zoom in by decreasing the FOV
-			CameraComponent->SetFieldOfView(FMath::FInterpTo(CameraComponent->FieldOfView, 45.0f, GetWorld()->GetDeltaSeconds(), InterpSpeed)); // Zoom in, target FOV is 45
-		}
+		ControlledPawn->GetWeaponSystem()->FireWeapon();
 	}
 }
 
@@ -136,14 +118,12 @@ void ABH_PlayerController::AimOff(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		ControlledPawn->AnimBP->IsAiming = false;
 		// Reset the camera's FOV to its default value
-		if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
-		{
-			// Smoothly return to the default FOV
-			CameraComponent->SetFieldOfView(FMath::FInterpTo(CameraComponent->FieldOfView, ControlledPawn->DefaultFOV, GetWorld()->GetDeltaSeconds(), InterpSpeed)); // Reset to default FOV
-
-		}
+		// if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
+		// {
+		// 	// Smoothly return to the default FOV
+		// 	CameraComponent->SetFieldOfView(FMath::FInterpTo(CameraComponent->FieldOfView, ControlledPawn->DefaultFOV, GetWorld()->GetDeltaSeconds(), InterpSpeed)); // Reset to default FOV
+		// }
 	}
 }
 
@@ -151,7 +131,7 @@ void ABH_PlayerController::FiringOn(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		ControlledPawn->FireButtonPressed = true;
+		ControlledPawn->GetWeaponSystem()->GetEquippedGun()->SetCanShoot(true);
 	}
 }
 
@@ -159,7 +139,10 @@ void ABH_PlayerController::FiringOff(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		ControlledPawn->FireButtonPressed = false;
+		if (ControlledPawn->GetWeaponSystem())
+		{
+			ControlledPawn->GetWeaponSystem()->GetEquippedGun()->SetCanShoot(false);
+		}
 	}
 }
 
@@ -167,7 +150,7 @@ void ABH_PlayerController::Sprint(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		if (ControlledPawn->Strength > 40 && ControlledPawn->AnimBP->IsAiming == false)
+		if (ControlledPawn->GetHealthSystem()->GetCharacterAttr().Strength > 40 && ControlledPawn->AnimBP->IsAiming == false)
 		{
 			ControlledPawn->GetCharacterMovement()->MaxWalkSpeed = 1500.0f;
 			ControlledPawn->AnimBP->IsSprinting = true;
@@ -196,11 +179,18 @@ void ABH_PlayerController::Reload(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		if (ControlledPawn->Cartridge > 0)
+		if (ControlledPawn->GetWeaponSystem())
 		{
-			GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Blue,FString::Printf(TEXT("Reloading Weapon")));
-			ControlledPawn->ReloadWeapon();
+			ControlledPawn->GetWeaponSystem()->ReloadWeapon();
 		}
+	}
+}
+
+void ABH_PlayerController::EquipItem(const FInputActionValue& InputActionValue)
+{
+	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
+	{
+		ControlledPawn->GetWeaponSystem()->PickUpNewWeapon();
 	}
 }
 

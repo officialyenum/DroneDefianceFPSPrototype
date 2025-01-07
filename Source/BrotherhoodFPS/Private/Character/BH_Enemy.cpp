@@ -3,9 +3,13 @@
 
 #include "Character/BH_Enemy.h"
 
+#include "Actor/BH_Gun.h"
 #include "Character/BH_CharacterPlayer.h"
+#include "Component/HealthSystem.h"
+#include "Component/WeaponSystem.h"
 #include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Sight.h"
 
 
@@ -30,6 +34,52 @@ void ABH_Enemy::BeginPlay()
 	// OnTakeAnyDamage.AddDynamic(this,&ABH_Enemy::TakeHitDamage);
 }
 
+void ABH_Enemy::Fire()
+{
+	Super::Fire();
+	PlayFireMontage();
+}
+
+void ABH_Enemy::HandleHealthDamaged(float NewHealth, float NewMaxHealth, float HealthChange)
+{
+	Super::HandleHealthDamaged(NewHealth, NewMaxHealth, HealthChange);
+}
+
+void ABH_Enemy::HandleHealthLow(float CurrentHealth)
+{
+	Super::HandleHealthLow(CurrentHealth);
+}
+
+void ABH_Enemy::HandleHealthDead(AController* causer)
+{
+	Super::HandleHealthDead(causer);
+}
+
+void ABH_Enemy::HandleShieldDamaged(float NewShield, float MaxShield, float ShieldChange)
+{
+	Super::HandleShieldDamaged(NewShield, MaxShield, ShieldChange);
+}
+
+void ABH_Enemy::HandleShieldDestroyed(AController* causer)
+{
+	Super::HandleShieldDestroyed(causer);
+}
+
+void ABH_Enemy::HandleCartridgeEmpty(FString Message)
+{
+	Super::HandleCartridgeEmpty(Message);
+}
+
+void ABH_Enemy::HandleReloadStart()
+{
+	Super::HandleReloadStart();
+}
+
+void ABH_Enemy::HandleReloadEnd()
+{
+	Super::HandleReloadEnd();
+}
+
 void ABH_Enemy::EnterCombatMode()
 {
 	AnimBP->IsAiming = true;
@@ -46,7 +96,7 @@ void ABH_Enemy::ApplyDamageToEnemy(AActor* Actor)
 	{
 		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Orange,FString::Printf(TEXT("Damage Applied To Player")));
 		TSubclassOf<UDamageType> DamageType;
-		UGameplayStatics::ApplyDamage(Enemy,BulletDamage,GetController(),this,DamageType);
+		UGameplayStatics::ApplyDamage(Enemy,GetWeaponSystem()->GetEquippedGun()->GetGunAttr().BulletDamage,GetController(),this,DamageType);
 	}
 }
 
@@ -75,12 +125,22 @@ void ABH_Enemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+bool ABH_Enemy::IsDead() const
+{
+	if (GetHealthSystem()->HasHealth())
+	{
+		return true;
+	}
+	return false;
+}
+
 void ABH_Enemy::SetupStimulusSource()
 {
 	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
 	if (StimulusSource)
 	{
 		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Hearing>());
 		StimulusSource->RegisterWithPerceptionSystem();
 	}
 }

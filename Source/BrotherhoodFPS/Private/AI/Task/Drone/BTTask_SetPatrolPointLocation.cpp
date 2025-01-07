@@ -21,10 +21,10 @@ EBTNodeResult::Type UBTTask_SetPatrolPointLocation::ExecuteTask(UBehaviorTreeCom
 			if (auto* npc = Cast<ABH_Drone>(cont->GetPawn()))
 			{
 				// get the current patrol path in vector from the npc - this is the local to the patron path actor
-				bc->SetValueAsObject(PatrolPathPointLocationKey.SelectedKeyName, npc->GetPatrolPoint());
-				npc->GoToNextPatrolPoint();
-				// finish with success
-				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+				// bc->SetValueAsObject(PatrolPathPointLocationKey.SelectedKeyName, npc->GetPatrolPoint());
+				// npc->GoToNextPatrolPoint();
+				// // finish with success
+				// FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 				return EBTNodeResult::Succeeded;
 			}
 		}

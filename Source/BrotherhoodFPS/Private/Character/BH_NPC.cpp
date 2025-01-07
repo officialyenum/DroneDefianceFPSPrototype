@@ -11,11 +11,50 @@ ABH_NPC::ABH_NPC()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void ABH_NPC::HandleHealthDamaged(float NewHealth, float NewMaxHealth, float HealthChange)
+{
+	Super::HandleHealthDamaged(NewHealth, NewMaxHealth, HealthChange);
+}
+
+void ABH_NPC::HandleHealthLow(float CurrentHealth)
+{
+	Super::HandleHealthLow(CurrentHealth);
+}
+
+void ABH_NPC::HandleHealthDead(AController* causer)
+{
+	Super::HandleHealthDead(causer);
+}
+
+void ABH_NPC::HandleShieldDamaged(float NewShield, float MaxShield, float ShieldChange)
+{
+	Super::HandleShieldDamaged(NewShield, MaxShield, ShieldChange);
+}
+
+void ABH_NPC::HandleShieldDestroyed(AController* causer)
+{
+	Super::HandleShieldDestroyed(causer);
+}
+
+void ABH_NPC::HandleCartridgeEmpty(FString Message)
+{
+	Super::HandleCartridgeEmpty(Message);
+}
+
+void ABH_NPC::HandleReloadStart()
+{
+	Super::HandleReloadStart();
+}
+
+void ABH_NPC::HandleReloadEnd()
+{
+	Super::HandleReloadEnd();
+}
+
 // Called when the game starts or when spawned
 void ABH_NPC::BeginPlay()
 {
 	Super::BeginPlay();
-	CharacterType = ECharacterType::NPC;
 }
 
 // Called every frame

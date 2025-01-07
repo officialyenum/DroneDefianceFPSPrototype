@@ -3,11 +3,15 @@
 
 #include "Character/BH_CharacterPlayer.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "Actor/BH_Gun.h"
 #include "Character/BH_Enemy.h"
+#include "Component/HealthSystem.h"
+#include "Component/WeaponSystem.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Pawn/BH_Drone.h"
 #include "Player/BH_PlayerController.h"
 
 
@@ -26,6 +30,55 @@ ABH_CharacterPlayer::ABH_CharacterPlayer()
 	RespawnLocation = FVector(-1970.000000,6280.000000,98.000100);
 }
 
+FGunAttr ABH_CharacterPlayer::GetGunAttr() const
+{
+	if(GetWeaponSystem())
+	{
+		return GetWeaponSystem()->GetEquippedGun()->GetGunAttr();
+	}
+	return FGunAttr();
+}
+
+void ABH_CharacterPlayer::HandleHealthDamaged(float NewHealth, float NewMaxHealth, float HealthChange)
+{
+	Super::HandleHealthDamaged(NewHealth, NewMaxHealth, HealthChange);
+}
+
+void ABH_CharacterPlayer::HandleHealthLow(float CurrentHealth)
+{
+	Super::HandleHealthLow(CurrentHealth);
+}
+
+void ABH_CharacterPlayer::HandleHealthDead(AController* causer)
+{
+	Super::HandleHealthDead(causer);
+}
+
+void ABH_CharacterPlayer::HandleShieldDamaged(float NewShield, float MaxShield, float ShieldChange)
+{
+	Super::HandleShieldDamaged(NewShield, MaxShield, ShieldChange);
+}
+
+void ABH_CharacterPlayer::HandleShieldDestroyed(AController* causer)
+{
+	Super::HandleShieldDestroyed(causer);
+}
+
+void ABH_CharacterPlayer::HandleCartridgeEmpty(FString Message)
+{
+	Super::HandleCartridgeEmpty(Message);
+}
+
+void ABH_CharacterPlayer::HandleReloadStart()
+{
+	Super::HandleReloadStart();
+}
+
+void ABH_CharacterPlayer::HandleReloadEnd()
+{
+	Super::HandleReloadEnd();
+}
+
 void ABH_CharacterPlayer::Die()
 {
 	Respawn();
@@ -33,7 +86,10 @@ void ABH_CharacterPlayer::Die()
 
 void ABH_CharacterPlayer::Respawn()
 {
-	Health = MaxHealth;
+	if (GetHealthSystem())
+	{
+		GetHealthSystem()->InitHealth();
+	}
 	SetActorLocation(RespawnLocation);
 }
 
@@ -45,22 +101,22 @@ void ABH_CharacterPlayer::BeginPlay()
 	OnTakeAnyDamage.AddDynamic(this,&ABH_CharacterPlayer::TakeHitDamage);
 	SetUpAnimBp();
 	DefaultFOV = Camera->FieldOfView; // Store default FOV
-	CharacterType = ECharacterType::Player;
 
 }
 
 void ABH_CharacterPlayer::ApplyDamageToEnemy(AActor* Actor)
 {
 	TSubclassOf<UDamageType> DamageType;
+	float damage = GetWeaponSystem()->GetEquippedGun()->GetGunAttr().BulletDamage;
 	if (ABH_Enemy* Enemy = Cast<ABH_Enemy>(Actor))
 	{
 		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Black,FString::Printf(TEXT("Damage Applied To Enemy")));
-		UGameplayStatics::ApplyDamage(Enemy,BulletDamage,GetController(),this,DamageType);
+		UGameplayStatics::ApplyDamage(Enemy, damage,GetController(),this,DamageType);
 	}
 	if (AActor* Enemy = Cast<AActor>(Actor))
 	{
 		GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Green,FString::Printf(TEXT("Damage Applied To Drone")));
-		UGameplayStatics::ApplyDamage(Enemy, BulletDamage,GetController(),this,DamageType);
+		UGameplayStatics::ApplyDamage(Enemy, damage, GetController(),this,DamageType);
 	}
 }
 
@@ -75,13 +131,10 @@ void ABH_CharacterPlayer::ApplyCameraShake(TSubclassOf<class UCameraShakeBase> C
 void ABH_CharacterPlayer::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
                                         AController* InstigatedBy, AActor* DamageCauser)
 {
+	GetHealthSystem()->DamageTaken(DamagedActor, Damage, DamageType, InstigatedBy, DamageCauser);
 	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,FString::Printf(TEXT("Player Took Damage")));
-	float NewHealth = Health - Damage;
-	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
-	CheckPlayerIsDead();
 	UpdatePlayerParamStats(0, 0, Damage);
-
-	if (NewHealth <= 0)
+	if (!GetHealthSystem()->HasHealth())
 	{
 		Die();
 	}
@@ -91,18 +144,24 @@ void ABH_CharacterPlayer::TakeHitDamage(AActor* DamagedActor, float Damage, cons
 void ABH_CharacterPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Strength < MaxStrength && AnimBP->IsSprinting == false)
+	if (GetHealthSystem()->GetCharacterAttr().Strength < GetHealthSystem()->GetCharacterAttr().MaxStrength && AnimBP->IsSprinting == false)
 	{
-		Strength += 5.0f * DeltaTime;
+		GetHealthSystem()->AddStrength(5.0f * DeltaTime);
 	}
-	if (Strength > 0 && AnimBP->IsSprinting == true)
+	if (GetHealthSystem()->GetCharacterAttr().Strength > 0 && AnimBP->IsSprinting == true)
 	{
-		Strength -= 20.0f * DeltaTime;
-		if(Strength <= 0)
+		GetHealthSystem()->ConsumeStrength(20.0f * DeltaTime);
+		if(GetHealthSystem()->GetCharacterAttr().Strength <= 0)
 		{
 			GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 			AnimBP->IsSprinting = false;
 		}
 	}
+}
+
+void ABH_CharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
 }
 

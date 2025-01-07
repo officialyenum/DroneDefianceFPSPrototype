@@ -6,6 +6,7 @@
 #include "NavigationSystem.h"
 #include "AI/Controller/BH_EnemyAiController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Character/BH_CharacterBase.h"
 
 UBTTask_FindRandomLocation::UBTTask_FindRandomLocation(FObjectInitializer const& ObjectInitializer)
 {
@@ -14,38 +15,19 @@ UBTTask_FindRandomLocation::UBTTask_FindRandomLocation(FObjectInitializer const&
 
 EBTNodeResult::Type UBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	if (ABH_EnemyAiController* const cont = Cast<ABH_EnemyAiController>(OwnerComp.GetAIOwner()))
+	Super::ExecuteTask(OwnerComp, NodeMemory);
+	if (OwnerComp.GetAIOwner() == nullptr) return EBTNodeResult::Failed;
+	APawn* Char = Cast<APawn>(OwnerComp.GetAIOwner()->GetPawn());
+	if(Char == nullptr) return EBTNodeResult::Failed;
+	if (auto* const NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
 	{
-		if (auto* const npc = cont->GetPawn())
-		{
-			auto const Origin = npc->GetActorLocation();
-
-			if (auto* const NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
-			{
-				FNavLocation Loc;
-				if (NavSys->GetRandomPointInNavigableRadius(Origin, SearchRadius, Loc))
-				{	
-					// Get the location of the player
-					FVector PlayerLocation = Loc;
-					FVector AILocation = npc->GetActorLocation();
-
-					// Find the direction the AI should look at
-					FRotator LookAtRotation = (PlayerLocation - AILocation).Rotation();
-
-					// Option 1: Instantly rotate towards player (Snap to rotation)
-					// Uncomment the following code for quick rotation
-					// ControlledPawn->SetActorRotation(LookAtRotation);
-
-					// Option 2: Smooth rotation towards the player (Interpolating rotation)
-					FRotator CurrentRotation = npc->GetActorRotation();
-					FRotator SmoothedRotation = FMath::RInterpTo(CurrentRotation, LookAtRotation, GetWorld()->GetDeltaSeconds(), 5.0f); // 5.0f is the interpolation speed
-					npc->SetActorRotation(SmoothedRotation);
-					OwnerComp.GetBlackboardComponent()->SetValueAsVector(GetSelectedBlackboardKey(), Loc.Location);
-				}
-				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-				return EBTNodeResult::Succeeded;
-			}
+		FNavLocation Loc;
+		if (NavSys->GetRandomPointInNavigableRadius(Char->GetActorLocation(), SearchRadius, Loc))
+		{	
+			OwnerComp.GetBlackboardComponent()->SetValueAsVector(GetSelectedBlackboardKey(), Loc.Location);
 		}
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return EBTNodeResult::Succeeded;
 	}
 	return EBTNodeResult::Failed;
 }

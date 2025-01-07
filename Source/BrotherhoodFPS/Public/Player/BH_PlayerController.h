@@ -50,6 +50,8 @@ private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> SprintAction;
 	UPROPERTY(EditAnywhere, Category="Input")
+	TObjectPtr<UInputAction> EquipAction;
+	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> QuitGameAction;
 
 
@@ -80,6 +82,7 @@ private:
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void Reload(const struct FInputActionValue& InputActionValue);
 	UFUNCTION(BlueprintCallable, Category="Player Actions")
+	void EquipItem(const struct FInputActionValue& InputActionValue);
+	UFUNCTION(BlueprintCallable, Category="Player Actions")
 	void QuitGame(const struct FInputActionValue& InputActionValue);
-	
 };

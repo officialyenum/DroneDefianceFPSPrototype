@@ -13,9 +13,8 @@ UENUM(BlueprintType)
 enum class EPickupType : uint8
 {
 	Health UMETA(DisplayName = "Health"),
-	Rifle_Cartridge UMETA(DisplayName = "Rifle_Cartridge"),
+	Cartridge UMETA(DisplayName = "Rifle_Cartridge"),
 	Pistol_Cartridge UMETA(DisplayName = "Pistol_Cartridge"),
-	Shotgun_Cartridge UMETA(DisplayName = "Shotgun_Cartridge")
 };
 
 UCLASS()
@@ -32,24 +31,31 @@ protected:
 	virtual void BeginPlay() override;
 	UFUNCTION()
 	void SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
+	UFUNCTION()
+	void SphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Pickup", meta=(DisplayName="Pickup"))
+	void PickUp(class ABH_CharacterSandBox* OwningCharacter);
 public:
-
-	UPROPERTY(VisibleAnywhere, Category="Pickup Components")
-	UStaticMeshComponent* ItemMesh;
+	FORCEINLINE USphereComponent* GetSphereCollision() const { return SphereCollision; }
+	FORCEINLINE UStaticMeshComponent* GetPickUpMesh() const { return PickUpMesh; }
 	
-	UPROPERTY(VisibleAnywhere, Category="Pickup Components")
-	USphereComponent* SphereComponent;
 	
-	UPROPERTY(VisibleAnywhere)
-	URotatingMovementComponent* RotatingMovementComponent;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Pickup Params")
+	UFUNCTION()
+	void DestroyPickup();
+	
+private:
+	// components
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup Components",meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<class USphereComponent> SphereCollision;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup Components",meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMeshComponent> PickUpMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup Components",meta=(AllowPrivateAccess = "true"))
+	TObjectPtr<class URotatingMovementComponent> RotatingMovementComponent;
+	// params
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Pickup Params",meta=(AllowPrivateAccess = "true"))
 	float PickupValue;
-	
-	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category="Player SoundS")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Pickup Params",meta=(AllowPrivateAccess = "true"))
 	TObjectPtr<USoundBase> PickupSound;
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category="Pickup Params")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Pickup Params",meta=(AllowPrivateAccess = "true"))
 	EPickupType PickupType;
-	
 };

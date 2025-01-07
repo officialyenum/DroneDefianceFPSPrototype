@@ -3,8 +3,14 @@
 
 #include "Actor/BH_Gun.h"
 
+#include "CollisionDebugDrawingPublic.h"
 #include "Character/BH_CharacterBase.h"
-#include "Interaction/CombatInterface.h"
+#include "Character/BH_CharacterPlayer.h"
+#include "Character/BH_CharacterPlayerSandBox.h"
+#include "Character/BH_CharacterSandBox.h"
+#include "Component/WeaponSystem.h"
+#include "Components/ArrowComponent.h"
+#include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -13,70 +19,187 @@ ABH_Gun::ABH_Gun()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	RootComponent = CreateDefaultSubobject<USceneComponent>("DefaultScene");
-	GunComponent = CreateDefaultSubobject<USkeletalMeshComponent>("Gun");
-	GunComponent->SetupAttachment(RootComponent);
-	GunComponent->SetGenerateOverlapEvents(false);
-	GunComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	//FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
-	//Gun->AttachToComponent(GetMesh(), Rules, FName("GripPoint"));
 	
-	BurstPoint = CreateDefaultSubobject<USceneComponent>("BurstPoint");
-	BurstPoint->SetupAttachment(GunComponent);
+	_Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = _Root;
+	
+	_FirePoint = CreateDefaultSubobject<UArrowComponent>(TEXT("FirePoint"));
+	_FirePoint->SetupAttachment(RootComponent);
+	
+	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun Mesh"));
+	GunMesh->SetupAttachment(RootComponent);
+	GunMesh->SetVisibility(true);
+}
 
+void ABH_Gun::Fire()
+{
+	GunAttr.CanShoot = false;
+	GunAttr.Ammo--;
+	// MuzzleFlashSocket
+	UE_LOG(LogTemp, Display, TEXT("You've Been Shot"));
+	if(GunAttr.MuzzleFlashVFX && GunAttr.ShotSFX)
+	{
+		UE_LOG(LogTemp, Display, TEXT("Muzzle Found"));
+		// HandleGunFX();
+		// UGameplayStatics::SpawnEmitterAttached(GunAttr.MuzzleFlashVFX, GunMesh, GunAttr.MuzzleSocketName);
+
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GunAttr.ImpactVFX, _FirePoint->GetComponentLocation());
+		UGameplayStatics::SpawnSoundAttached(GunAttr.ShotSFX, GunMesh, GunAttr.MuzzleSocketName);
+		
+		FVector ShotDirection;
+		FHitResult OutHitResult;
+		bool bHitDetected = GunTrace(OutHitResult, ShotDirection);
+		UE_LOG(LogTemp, Display, TEXT("Hit Detected: false"));
+		if (bHitDetected)
+		{
+			UE_LOG(LogTemp, Display, TEXT("Hit Target"));
+			if (GunAttr.ImpactVFX && GunAttr.ImpactSFX)
+			{
+				// HandleHitFX(OutHitResult.ImpactPoint, ShotDirection);
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GunAttr.ImpactVFX, OutHitResult.ImpactPoint, ShotDirection.Rotation());
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(),GunAttr.ImpactSFX,OutHitResult.ImpactPoint,ShotDirection.Rotation());
+				if(AActor* HitActor = OutHitResult.GetActor())
+				{
+					FPointDamageEvent DamageEvent(GunAttr.Damage, OutHitResult, ShotDirection, nullptr);
+					HitActor->TakeDamage(GunAttr.Damage, DamageEvent, GetGunOwnerController(), this);				
+				}
+			}
+			else
+			{
+				DrawDebugSphere(GetWorld(),OutHitResult.ImpactPoint,100, 16,FColor::Red);
+			}
+		}
+		// DrawDebugCamera(GetWorld(), Location, Rotator, 90, 2, FColor::Red, true);
+	}
+}
+
+void ABH_Gun::SetGunAttr(const FGunAttr& NewAttr)
+{
+	GunAttr = NewAttr;
+	GunName = GunAttr.GunName;
+	SetUpGunMesh();
 }
 
 // Called when the game starts or when spawned
 void ABH_Gun::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	SetUpGunMesh();
+	FAttachmentTransformRules Rules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepRelative, true);
+	// Attach the gun to the character's mesh at "GripPoint"
+	_FirePoint->AttachToComponent(
+		GunMesh,
+		Rules,
+		GunAttr.MuzzleSocketName
+	);
 }
 
-void ABH_Gun::PlaySoundAndBurstEmitterFX()
+bool ABH_Gun::HasAmmo() const
 {
-	FVector Loc = BurstPoint->GetComponentLocation();
-	FRotator Rot = BurstPoint->GetComponentRotation();
-	FVector Scale = FVector(0.25);
-	UGameplayStatics::SpawnEmitterAtLocation(this, ShotBurstFX, Loc, Rot, Scale, true);
-	UGameplayStatics::PlaySoundAtLocation(this, ShotSound, Loc, Rot, 0.5f);
+	return GunAttr.Ammo > 0;
 }
 
-void ABH_Gun::ResetCanShoot()
+bool ABH_Gun::HasCartridge() const
 {
-	CanShoot = true;
+	return GunAttr.Cartridge > 0;
 }
 
-AActor* ABH_Gun::PerformLineTrace()
+void ABH_Gun::SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                 UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AActor* Camera = UGameplayStatics::GetPlayerCameraManager(this,0);
-	FVector Loc = Camera->GetActorLocation();
-	FVector FV = Camera->GetActorForwardVector() * 5000;
-	FVector LOCFV = Loc + FV;
-
-	FHitResult HitResult;
-	GetWorld()->LineTraceSingleByChannel(HitResult, Loc, LOCFV, ECC_Visibility);
-	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactFX, HitResult.ImpactPoint,FRotator(0.F),FVector(1));
-	if (ICombatInterface* Actor = Cast<ICombatInterface>(HitResult.GetActor()))
+	if(ABH_CharacterPlayer* SandBoxPlayer = Cast<ABH_CharacterPlayer>(OtherActor))
 	{
-		return HitResult.GetActor();
+		SetOwner(SandBoxPlayer);
+		SandBoxPlayer->GetWeaponSystem()->UpdateHoveredGun(this);
 	}
-	return nullptr;
+}
+
+void ABH_Gun::SphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (ABH_CharacterPlayer* CHPlayer = Cast<ABH_CharacterPlayer>(OtherActor))
+	{
+		SetOwner(nullptr);
+		CHPlayer->GetWeaponSystem()->UpdateHoveredGun(nullptr);
+	}
 }
 
 void ABH_Gun::Reload()
 {
-	if (Cartridge > 0)
+	if (GunAttr.Cartridge > 0)
 	{
-		Cartridge--;
-		Ammo = FMath::Clamp(MaxAmmo, 0, MaxAmmo);
-		UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
+		GunAttr.Cartridge--;
+		GunAttr.Ammo = FMath::Clamp(GunAttr.MaxAmmo, 0, GunAttr.MaxAmmo);
+		UGameplayStatics::PlaySoundAtLocation(this, GunAttr.ReloadSound, GetActorLocation(), GetActorRotation(), 0.5f);
 	}
 }
 
 void ABH_Gun::AddCartridge(int32 NewCartRidge)
 {
-	Cartridge = FMath::Clamp(Cartridge + NewCartRidge, 0, MaxCartridge);
+	GunAttr.Cartridge = FMath::Clamp(GunAttr.Cartridge + NewCartRidge, 0, GunAttr.MaxCartridge);
+}
+
+void ABH_Gun::SetCanShoot(bool Value)
+{
+	GunAttr.CanShoot = Value;
+}
+
+void ABH_Gun::SetCanReload(bool Value)
+{
+	GunAttr.CanReload = Value;
+}
+
+bool ABH_Gun::GunTrace(FHitResult& OutHit, FVector& ShotDirection) const
+{
+	AController* OwnerController = GetGunOwnerController();
+	if (OwnerController == nullptr) return false;
+	FVector Location;
+	FRotator Rotator;
+	OwnerController->GetPlayerViewPoint(Location, Rotator);
+	ShotDirection = -Rotator.Vector();
+	FVector EndPoint = Location + Rotator.Vector() * GunAttr.BulletShotRange;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	Params.AddIgnoredActor(GetOwner());
+	return GetWorld()->LineTraceSingleByChannel(OutHit, Location, EndPoint, ECC_Visibility, Params);
+}
+
+AController* ABH_Gun::GetGunOwnerController() const
+{
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (OwnerPawn == nullptr) return nullptr;
+	return OwnerPawn->GetController();
+}
+
+void ABH_Gun::SetUpGunMesh()
+{
+	if (GetGunDT())
+	{
+		// Find the row for the gun by GunName
+		if (const FGunAttr* FoundGunAttr = GetGunDT()->FindRow<FGunAttr>(GunName, TEXT("Lookup Gun Attributes")))
+		{
+			GunAttr = *FoundGunAttr;
+
+			// Update the skeletal mesh if it's valid
+			if (GunAttr.GunMeshSK)
+			{
+				GunMesh->SetSkeletalMesh(GunAttr.GunMeshSK);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("GunMeshSK is null for GunName: %s"), *GunName.ToString());
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to find row in Gun Data Table for GunName: %s"), *GunName.ToString());
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Gun Data Table is null."));
+	}
+
 }
 
 

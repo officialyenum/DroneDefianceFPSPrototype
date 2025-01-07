@@ -20,30 +20,63 @@ ABH_Friendly::ABH_Friendly()
 void ABH_Friendly::BeginPlay()
 {
 	Super::BeginPlay();
-	CharacterType = ECharacterType::NPC;
 	OnTakeAnyDamage.AddDynamic(this,&ABH_Friendly::TakeHitDamage);
 	
 }
 
+void ABH_Friendly::Fire()
+{
+	Super::Fire();
+}
+
 void ABH_Friendly::ApplyDamageToEnemy(AActor* Actor)
 {
-	TSubclassOf<UDamageType> DamageType;
-	if (ABH_Enemy* Enemy = Cast<ABH_Enemy>(Actor))
-	{
-		UGameplayStatics::ApplyDamage(Enemy, BulletDamage,GetController(),this,DamageType);
-	}
-	if (ABH_Drone* Enemy = Cast<ABH_Drone>(Actor))
-	{
-		UGameplayStatics::ApplyDamage(Enemy, BulletDamage,GetController(),this,DamageType);
-	}
+	
 }
 
 void ABH_Friendly::TakeHitDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
 	AController* InstigatedBy, AActor* DamageCauser)
 {
-	
-	float NewHealth = Health - Damage;
-	Health = FMath::Clamp(NewHealth, 0, MaxHealth);
+}
+
+void ABH_Friendly::HandleHealthDamaged(float NewHealth, float NewMaxHealth, float HealthChange)
+{
+	Super::HandleHealthDamaged(NewHealth, NewMaxHealth, HealthChange);
+}
+
+void ABH_Friendly::HandleHealthLow(float CurrentHealth)
+{
+	Super::HandleHealthLow(CurrentHealth);
+}
+
+void ABH_Friendly::HandleHealthDead(AController* causer)
+{
+	Super::HandleHealthDead(causer);
+}
+
+void ABH_Friendly::HandleShieldDamaged(float NewShield, float MaxShield, float ShieldChange)
+{
+	Super::HandleShieldDamaged(NewShield, MaxShield, ShieldChange);
+}
+
+void ABH_Friendly::HandleShieldDestroyed(AController* causer)
+{
+	Super::HandleShieldDestroyed(causer);
+}
+
+void ABH_Friendly::HandleCartridgeEmpty(FString Message)
+{
+	Super::HandleCartridgeEmpty(Message);
+}
+
+void ABH_Friendly::HandleReloadStart()
+{
+	Super::HandleReloadStart();
+}
+
+void ABH_Friendly::HandleReloadEnd()
+{
+	Super::HandleReloadEnd();
 }
 
 // Called every frame
