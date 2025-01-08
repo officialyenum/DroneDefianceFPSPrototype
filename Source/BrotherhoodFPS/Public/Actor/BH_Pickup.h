@@ -9,12 +9,15 @@
 #include "Components/StaticMeshComponent.h"
 #include "BH_Pickup.generated.h"
 
+class ABH_Gun;
+
 UENUM(BlueprintType)
 enum class EPickupType : uint8
 {
 	Health UMETA(DisplayName = "Health"),
 	Cartridge UMETA(DisplayName = "Rifle_Cartridge"),
 	Pistol_Cartridge UMETA(DisplayName = "Pistol_Cartridge"),
+	Gun UMETA(DisplayName = "Gun"),
 };
 
 UCLASS()

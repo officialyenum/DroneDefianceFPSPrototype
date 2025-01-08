@@ -16,6 +16,11 @@
 ABH_PlayerController::ABH_PlayerController()
 {
 	bReplicates = true;
+	
+	// Show the mouse cursor
+	bShowMouseCursor = true;
+	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
 }
 
 void ABH_PlayerController::BeginPlay()

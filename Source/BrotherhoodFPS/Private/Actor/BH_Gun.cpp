@@ -10,6 +10,7 @@
 #include "Character/BH_CharacterSandBox.h"
 #include "Component/WeaponSystem.h"
 #include "Components/ArrowComponent.h"
+#include "Components/SphereComponent.h"
 #include "Engine/DamageEvents.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -25,6 +26,9 @@ ABH_Gun::ABH_Gun()
 	
 	_FirePoint = CreateDefaultSubobject<UArrowComponent>(TEXT("FirePoint"));
 	_FirePoint->SetupAttachment(RootComponent);
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere Component"));
+	SphereCollision->SetupAttachment(RootComponent);
+	
 	
 	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Gun Mesh"));
 	GunMesh->SetupAttachment(RootComponent);
@@ -41,9 +45,8 @@ void ABH_Gun::Fire()
 	{
 		UE_LOG(LogTemp, Display, TEXT("Muzzle Found"));
 		// HandleGunFX();
-		// UGameplayStatics::SpawnEmitterAttached(GunAttr.MuzzleFlashVFX, GunMesh, GunAttr.MuzzleSocketName);
-
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GunAttr.ImpactVFX, _FirePoint->GetComponentLocation());
+		UGameplayStatics::SpawnEmitterAttached(GunAttr.MuzzleFlashVFX, GunMesh, GunAttr.MuzzleSocketName);
+		// UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GunAttr.ImpactVFX, _FirePoint->GetComponentLocation());
 		UGameplayStatics::SpawnSoundAttached(GunAttr.ShotSFX, GunMesh, GunAttr.MuzzleSocketName);
 		
 		FVector ShotDirection;
@@ -91,7 +94,9 @@ void ABH_Gun::BeginPlay()
 		GunMesh,
 		Rules,
 		GunAttr.MuzzleSocketName
-	);
+		);
+	SphereCollision->OnComponentBeginOverlap.AddDynamic(this,&ABH_Gun::SphereBeginOverlap);
+	SphereCollision->OnComponentEndOverlap.AddDynamic(this, &ABH_Gun::SphereEndOverlap);
 }
 
 bool ABH_Gun::HasAmmo() const
@@ -156,11 +161,12 @@ bool ABH_Gun::GunTrace(FHitResult& OutHit, FVector& ShotDirection) const
 	FVector Location;
 	FRotator Rotator;
 	OwnerController->GetPlayerViewPoint(Location, Rotator);
-	ShotDirection = -Rotator.Vector();
+	ShotDirection = Rotator.Vector();
 	FVector EndPoint = Location + Rotator.Vector() * GunAttr.BulletShotRange;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 	Params.AddIgnoredActor(GetOwner());
+	DrawDebugLine(GetWorld(),Location,EndPoint,FColor::Red, false, 3.0f);
 	return GetWorld()->LineTraceSingleByChannel(OutHit, Location, EndPoint, ECC_Visibility, Params);
 }
 
