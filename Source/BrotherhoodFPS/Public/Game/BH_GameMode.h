@@ -69,8 +69,8 @@ public:
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FShowTutorialSignature, const FTutorialInfo&, TutorialInfo);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FStateChangeSignature, const EGameSessionState&, NewState);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameTimeChangeSignature, const float&, newGameTime);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarmUpTimeChangeSignature, const float&, newWarmUpTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FGameTimeChangeSignature, const FText&, newGameTime, const FLinearColor&, NewColor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWarmUpTimeChangeSignature, const FText&, newWarmUpTime);
 
 
 UCLASS()
@@ -95,6 +95,7 @@ public:
 	FWarmUpTimeChangeSignature OnWarmUpTimeChange;
 	
 	void TriggerShowTutorial(const FTutorialInfo& TutorialInfo) const;
+	static FText FormatTimeToText(const float NewTime);
 	
 	UFUNCTION(BlueprintCallable, Category = "GM|Functions")
 	void StartGame();

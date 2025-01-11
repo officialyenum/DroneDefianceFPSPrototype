@@ -113,9 +113,11 @@ void ABH_PlayerController::Shoot(const FInputActionValue& InputActionValue)
 
 void ABH_PlayerController::AimOn(const FInputActionValue& InputActionValue)
 {
+	
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
-		ControlledPawn->GetWeaponSystem()->FireWeapon();
+		// ControlledPawn->AnimBP->IsAiming = true;
+		// ControlledPawn->GetWeaponSystem()->FireWeapon();
 	}
 }
 
@@ -123,6 +125,7 @@ void ABH_PlayerController::AimOff(const FInputActionValue& InputActionValue)
 {
 	if (ABH_CharacterPlayer* ControlledPawn = GetPawn<ABH_CharacterPlayer>())
 	{
+		// ControlledPawn->AnimBP->IsAiming = false;
 		// Reset the camera's FOV to its default value
 		// if (UCameraComponent* CameraComponent = ControlledPawn->Camera)
 		// {

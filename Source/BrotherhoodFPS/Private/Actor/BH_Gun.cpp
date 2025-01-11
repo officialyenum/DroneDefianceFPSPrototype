@@ -157,18 +157,39 @@ void ABH_Gun::SetCanReload(bool Value)
 bool ABH_Gun::GunTrace(FHitResult& OutHit, FVector& ShotDirection) const
 {
 	AController* OwnerController = GetGunOwnerController();
-	if (OwnerController == nullptr) return false;
-	FVector Location;
-	FRotator Rotator;
-	OwnerController->GetPlayerViewPoint(Location, Rotator);
-	ShotDirection = Rotator.Vector();
-	FVector EndPoint = Location + Rotator.Vector() * GunAttr.BulletShotRange;
+	if (OwnerController == nullptr) 
+	{
+		UE_LOG(LogTemp, Error, TEXT("OwnerController is null!"));
+		return false;
+	}
+
+	// Get the player's viewpoint
+	FVector PlayerViewLocation;
+	FRotator PlayerViewRotation;
+	OwnerController->GetPlayerViewPoint(PlayerViewLocation, PlayerViewRotation);
+
+	// Calculate the shot direction
+	ShotDirection = PlayerViewRotation.Vector();
+
+	// Get the gun's muzzle location (or some specific point on the gun)
+	// FVector MuzzleLocation = GunMesh->GetSocketLocation(GunAttr.MuzzleSocketName);
+
+	// Trace from the muzzle location towards the aim direction
+	FVector TraceEnd = PlayerViewLocation + ShotDirection * GunAttr.BulletShotRange;
+
+	// Setup collision query params
 	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	Params.AddIgnoredActor(GetOwner());
-	DrawDebugLine(GetWorld(),Location,EndPoint,FColor::Red, false, 3.0f);
-	return GetWorld()->LineTraceSingleByChannel(OutHit, Location, EndPoint, ECC_Visibility, Params);
+
+	Params.AddIgnoredActor(this);     // Ignore the gun itself
+	Params.AddIgnoredActor(GetOwner()); // Ignore the owning actor
+
+	// Optional: Debug line to visualize the trace
+	DrawDebugLine(GetWorld(), PlayerViewLocation, TraceEnd, FColor::Red, false, 3.0f);
+
+	// Perform the line trace
+	return GetWorld()->LineTraceSingleByChannel(OutHit, PlayerViewLocation, TraceEnd, ECC_Visibility, Params);
 }
+
 
 AController* ABH_Gun::GetGunOwnerController() const
 {

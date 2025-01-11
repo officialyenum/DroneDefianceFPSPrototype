@@ -40,6 +40,7 @@ void UWeaponSystem::BeginPlay()
 					TEXT("GripPoint")
 				);
 				EquippedGun->GetGunMeshComponent()->SetVisibility(true);
+				EquippedGun->SetOwner(OwnerCharacter);
 			}
 			else
 			{
@@ -102,6 +103,8 @@ void UWeaponSystem::PickUpNewWeapon() const
 		FGunAttr TempAttr = EquippedGun->GetGunAttr();
 		EquippedGun->SetGunAttr(HoveredGun->GetGunAttr());
 		HoveredGun->SetGunAttr(TempAttr);
+		EquippedGun->SetOwner(Parent);
+		HoveredGun->SetOwner(nullptr);
 	}
 }
 

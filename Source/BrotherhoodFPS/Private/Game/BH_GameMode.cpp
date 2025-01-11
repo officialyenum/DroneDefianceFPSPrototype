@@ -9,6 +9,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetTextLibrary.h"
 #include "Player/BH_PlayerController.h"
 
 ABH_GameMode::ABH_GameMode()
@@ -21,15 +22,16 @@ void ABH_GameMode::BeginPlay()
 	if(ABH_PlayerController* PC = Cast<ABH_PlayerController>(GetWorld()->GetFirstPlayerController()))
 	{
 		PlayerController = PC;
+		PlayerController->Pause();
 		ShowWidget(EHUDType::MainMenu);
 	}
 	if (OnWarmUpTimeChange.IsBound())
 	{
-		OnWarmUpTimeChange.Broadcast(WarmUpTime);
+		OnWarmUpTimeChange.Broadcast(FormatTimeToText(WarmUpTime));
 	}
 	if (OnGameTimeChange.IsBound())
 	{
-		OnGameTimeChange.Broadcast(RemainingTime);
+		OnGameTimeChange.Broadcast(FormatTimeToText(RemainingTime), FColor::White);
 	}
 	UpdateGameState(EGameSessionState::MainMenu);
 	SetupTutorialList();
@@ -47,6 +49,19 @@ void ABH_GameMode::TriggerShowTutorial(const FTutorialInfo& TutorialInfo) const
 	{
 		OnShowTutorial.Broadcast(TutorialInfo);
 	}
+}
+
+FText ABH_GameMode::FormatTimeToText(const float NewTime)
+{
+	// Calculate minutes and seconds
+	int64 FlooredMinute = UKismetMathLibrary::FFloor64(NewTime / 60.f); // Minutes
+	int64 FlooredSeconds = UKismetMathLibrary::FFloor64(FMath::Fmod(NewTime, 60.f)); // Seconds
+
+	// Format as MM:SS
+	FString TimeString = FString::Printf(TEXT("%02lld:%02lld"), FlooredMinute, FlooredSeconds);
+    
+	// Convert to FText
+	return FText::FromString(TimeString);
 }
 
 FTutorialInfo ABH_GameMode::GetTutorialByName(const FName& TutorialName) const
@@ -159,7 +174,7 @@ void ABH_GameMode::UpdateWarmUpTimer()
 		// Todo:: broadcast Warm Up time to UI
 		if (OnWarmUpTimeChange.IsBound())
 		{
-			OnWarmUpTimeChange.Broadcast(NewTime);
+			OnWarmUpTimeChange.Broadcast(FormatTimeToText(NewTime));
 		}
 		GetWorld()->GetTimerManager().SetTimer(WarmupTimerHandler, this, &ABH_GameMode::UpdateWarmUpTimer, 1, false);
 		return;
@@ -176,17 +191,22 @@ void ABH_GameMode::UpdateGameTimer()
 	RemainingTime = FMath::Clamp(RemainingTime - UGameplayStatics::GetWorldDeltaSeconds(this),0, RemainingTime);
 	if(RemainingTime <= 15.f)
 	{
-		// if (RemainingTime <= 0.f)
+		if (RemainingTime <= 0.f)
 		{
 			UpdateGameState(EGameSessionState::OutOfTime);
 			return;
 		}
 		//TODO: Set Text to Red
+		if (OnGameTimeChange.IsBound())
+		{
+			OnGameTimeChange.Broadcast(FormatTimeToText(RemainingTime), FLinearColor::Red);
+		}
+		return;
 	}
 	// Todo:: broadcast Game Up time to UI
 	if (OnGameTimeChange.IsBound())
 	{
-		OnGameTimeChange.Broadcast(RemainingTime);
+		OnGameTimeChange.Broadcast(FormatTimeToText(RemainingTime), FLinearColor::White);
 	}
 	GetWorld()->GetTimerManager().SetTimer(GameTimerHandler, this, &ABH_GameMode::UpdateGameTimer, 1, false);
 }
@@ -215,7 +235,7 @@ void ABH_GameMode::UpdateGameState(const EGameSessionState& NewSessionState)
 		case EGameSessionState::Paused:
 			PlayerController->bShowMouseCursor = true;
 			PlayerController->SetInputMode(UIMode);
-			PauseGame();
+			PlayerController->Pause();
 			break;
 		case EGameSessionState::OutOfTime:
 			PlayerController->bShowMouseCursor = true;
