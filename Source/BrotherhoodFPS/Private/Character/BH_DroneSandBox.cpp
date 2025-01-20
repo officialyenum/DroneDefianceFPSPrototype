@@ -8,6 +8,7 @@
 #include "Component/HealthSystem.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "Game/BH_GameMode.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -179,6 +180,7 @@ void ABH_DroneSandBox::HandleReloadEnd()
 void ABH_DroneSandBox::HandleHealthDead(AController* causer)
 {
 	GEngine->AddOnScreenDebugMessage(-1,5.0f,FColor::Red,TEXT("Handle Player Death"));
+	Cast<ABH_GameMode>(UGameplayStatics::GetGameMode(this))->PawnKilled(this);
 }
 
 void ABH_DroneSandBox::SetupStimulusSource()

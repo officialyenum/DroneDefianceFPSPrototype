@@ -101,7 +101,6 @@ void ABH_CharacterPlayer::BeginPlay()
 	OnTakeAnyDamage.AddDynamic(this,&ABH_CharacterPlayer::TakeHitDamage);
 	SetUpAnimBp();
 	DefaultFOV = Camera->FieldOfView; // Store default FOV
-
 }
 
 void ABH_CharacterPlayer::ApplyDamageToEnemy(AActor* Actor)
