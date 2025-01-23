@@ -94,7 +94,6 @@ public:
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShowTutorialSignature, const FTutorialInfo&, TutorialInfo);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStateChangeSignature, EGameSessionState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWarmUpTimeChangeSignature, FText, FormattedTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnGameTimeChangeSignature, FText, FormattedTime, FLinearColor, TimeColor);
